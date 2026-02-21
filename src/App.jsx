@@ -1,19 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
-import CreatePost from './components/CreatePost';
+import PostInput from './components/PostInput';
+import UsernameInput from './components/UsernameInput';
 import Feed from './components/Feed';
-import { getPosts, addPost, deletePost, toggleLike } from './utils/storage';
+import { getPosts, addPost, deletePost, toggleLike, getUsername, saveUsername } from './utils/storage';
 
 function App() {
     const [posts, setPosts] = useState([]);
+    const [username, setUsername] = useState('');
 
-    // Load posts on initial render
+    // Load posts and username on initial render
     useEffect(() => {
         setPosts(getPosts());
+        setUsername(getUsername());
     }, []);
 
+    const handleSaveUsername = (name) => {
+        saveUsername(name);
+        setUsername(name);
+    }
+
     const handleAddPost = (content) => {
-        const newPost = addPost(content);
+        const newPost = addPost(content, username);
         setPosts([newPost, ...posts]);
     };
 
@@ -51,7 +59,11 @@ function App() {
                     </p>
                 </div>
 
-                <CreatePost onAddPost={handleAddPost} />
+                {username ? (
+                    <PostInput onAddPost={handleAddPost} />
+                ) : (
+                    <UsernameInput onSave={handleSaveUsername} />
+                )}
 
                 <div className="mt-20">
                     <div className="flex items-center gap-4 mb-8">

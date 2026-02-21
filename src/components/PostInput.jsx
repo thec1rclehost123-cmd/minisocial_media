@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Send, Image as ImageIcon, Smile, MapPin } from 'lucide-react';
 
-const CreatePost = ({ onAddPost }) => {
+const PostInput = ({ onAddPost }) => {
     const [content, setContent] = useState('');
 
     const handleSubmit = (e) => {
@@ -50,4 +50,4 @@ const CreatePost = ({ onAddPost }) => {
     );
 };
 
-export default CreatePost;
+export default PostInput;
