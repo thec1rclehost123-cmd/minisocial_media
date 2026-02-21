@@ -1,56 +1,76 @@
-import React, { useState } from 'react'
-import { Plus, Heart, Trash2, MessageSquare } from 'lucide-react'
+import React, { useState, useEffect } from 'react';
+import Navbar from './components/Navbar';
+import CreatePost from './components/CreatePost';
+import Feed from './components/Feed';
+import { getPosts, addPost, deletePost, toggleLike } from './utils/storage';
 
 function App() {
+    const [posts, setPosts] = useState([]);
+
+    // Load posts on initial render
+    useEffect(() => {
+        setPosts(getPosts());
+    }, []);
+
+    const handleAddPost = (content) => {
+        const newPost = addPost(content);
+        setPosts([newPost, ...posts]);
+    };
+
+    const handleDeletePost = (id) => {
+        deletePost(id);
+        setPosts(posts.filter(post => post.id !== id));
+    };
+
+    const handleLikePost = (id) => {
+        toggleLike(id);
+        setPosts(posts.map(post => {
+            if (post.id === id) {
+                return { ...post, likes: post.likes + 1 };
+            }
+            return post;
+        }));
+    };
+
     return (
-        <div className="min-h-screen bg-slate-950 text-slate-50 py-10 px-4">
-            <div className="max-w-2xl mx-auto space-y-8">
-                {/* Header */}
-                <header className="flex justify-between items-center">
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">
-                        MiniSocial
-                    </h1>
-                    <button className="p-2 rounded-full glass hover:bg-white/10 transition-colors">
-                        <Plus size={24} />
-                    </button>
-                </header>
+        <div className="min-h-screen bg-[#020617] text-slate-50 relative overflow-x-hidden">
+            {/* Background blobs for premium feel */}
+            <div className="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-600/10 blur-[120px] rounded-full z-0"></div>
+            <div className="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/10 blur-[120px] rounded-full z-0"></div>
 
-                {/* Feature Sections (Placeholders for Team) */}
-                <div className="grid gap-6">
-                    <section className="p-6 rounded-2xl glass space-y-4">
-                        <h2 className="text-xl font-semibold flex items-center gap-2 text-indigo-300">
-                            <Plus size={20} /> Create Post
-                        </h2>
-                        <p className="text-slate-400 text-sm">Waiting for developer assignment...</p>
-                    </section>
+            <Navbar />
 
-                    <section className="p-6 rounded-2xl glass space-y-4">
-                        <h2 className="text-xl font-semibold flex items-center gap-2 text-violet-300">
-                            <MessageSquare size={20} /> Feed View
-                        </h2>
-                        <p className="text-slate-400 text-sm">Waiting for developer assignment...</p>
-
-                        {/* Example Card */}
-                        <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-3">
-                            <p>Welcome to the collaborative project! Clone, branch, and start building.</p>
-                            <div className="flex gap-4">
-                                <button className="flex items-center gap-1 text-slate-400 hover:text-rose-400 transition-colors">
-                                    <Heart size={18} /> <span className="text-xs">0</span>
-                                </button>
-                                <button className="flex items-center gap-1 text-slate-400 hover:text-red-400 transition-colors">
-                                    <Trash2 size={18} /> <span className="text-xs">Delete</span>
-                                </button>
-                            </div>
-                        </div>
-                    </section>
+            <main className="relative z-10 pt-32 pb-20 max-w-7xl mx-auto px-6">
+                {/* Welcome Section */}
+                <div className="text-center mb-16">
+                    <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4">
+                        Curate your <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">Creative Space</span>
+                    </h2>
+                    <p className="text-slate-400 text-lg max-w-2xl mx-auto">
+                        A minimal place to share ideas, bookmarks, and sparks of inspiration with your team.
+                    </p>
                 </div>
 
-                <footer className="pt-10 text-center text-slate-500 text-xs">
-                    Built with React + Vite + Tailwind 4
-                </footer>
-            </div>
+                <CreatePost onAddPost={handleAddPost} />
+
+                <div className="mt-20">
+                    <div className="flex items-center gap-4 mb-8">
+                        <h3 className="text-xl font-semibold">Latest Inspiration</h3>
+                        <div className="h-[1px] flex-1 bg-gradient-to-r from-white/10 to-transparent"></div>
+                    </div>
+                    <Feed
+                        posts={posts}
+                        onLike={handleLikePost}
+                        onDelete={handleDeletePost}
+                    />
+                </div>
+            </main>
+
+            <footer className="relative z-10 border-t border-white/5 py-10 text-center text-slate-500 text-sm">
+                <p>&copy; 2026 MiniSocial Project. Built with Teamwork.</p>
+            </footer>
         </div>
-    )
+    );
 }
 
-export default App
+export default App;
