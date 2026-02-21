@@ -1,0 +1,28 @@
+{
+  "name": "minisocial_media",
+  "version": "1.0.0",
+  "description": "<br>\r by thec1rcle",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "bugs": {
+    "url": "https://github.com/thec1rclehost123-cmd/minisocial_media/issues"
+  },
+  "homepage": "https://github.com/thec1rclehost123-cmd/minisocial_media#readme",
+  "dependencies": {
+    "@vitejs/plugin-react-swc": "^4.2.3",
+    "lucide-react": "^0.575.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "vite": "^7.3.1"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.24",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.2.0"
+  }
+}
