@@ -10,7 +10,7 @@ const PostCard = ({ post, onLike, onDelete }) => {
                     <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center">
                         <User size={16} className="text-white" />
                     </div>
-                    <span className="text-sm font-medium text-slate-300">User</span>
+                    <span className="text-sm font-medium text-slate-300">{post.username || "Anonymous"}</span>
                 </div>
 
                 <p className="text-slate-100 leading-relaxed">
@@ -18,7 +18,7 @@ const PostCard = ({ post, onLike, onDelete }) => {
                 </p>
 
                 <div className="mt-6 flex items-center justify-between text-xs text-slate-500">
-                    <span>{new Date(post.timestamp).toLocaleDateString()}</span>
+                    <span>{new Date(post.createdAt).toLocaleDateString()}</span>
                     <div className="flex items-center gap-1">
                         <Heart size={14} className={post.likes > 0 ? "fill-rose-500 text-rose-500" : ""} />
                         <span>{post.likes}</span>
