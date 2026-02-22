@@ -1,11 +1,7 @@
 import React from 'react';
-import { Layout, Bell, User, Search, LogOut } from 'lucide-react';
-import { supabase } from '../utils/supabase';
+import { Layout, Bell, User, Search } from 'lucide-react';
 
 const Navbar = () => {
-    const handleLogout = async () => {
-        await supabase.auth.signOut();
-    };
 
     return (
         <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4">
@@ -39,13 +35,6 @@ const Navbar = () => {
                         <div className="w-10 h-10 rounded-full glass border border-white/10 flex items-center justify-center text-slate-400 hover:text-white cursor-pointer transition-all">
                             <User size={22} />
                         </div>
-                        <button
-                            onClick={handleLogout}
-                            className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all"
-                            title="Sign Out"
-                        >
-                            <LogOut size={20} />
-                        </button>
                     </div>
                 </div>
             </div>

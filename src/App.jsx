@@ -1,33 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import PostInput from './components/PostInput';
+import UsernameInput from './components/UsernameInput';
 import Feed from './components/Feed';
-import { supabase } from './utils/supabase';
-import { getPosts, addPost, deletePost, toggleLike, addComment, deleteComment, toggleCommentLike } from './utils/storage';
+import { getPosts, addPost, deletePost, toggleLike, getUsername, saveUsername, addComment, deleteComment, toggleCommentLike } from './utils/storage';
 
 function App() {
     const [posts, setPosts] = useState([]);
-    const [session, setSession] = useState(null);
+    const [username, setUsername] = useState('');
 
-    // Load posts and handle auth
+    // Load posts and username on initial render
     useEffect(() => {
-        const fetchInitialData = async () => {
-            const initialPosts = await getPosts();
-            setPosts(initialPosts);
-        };
-        fetchInitialData();
-
-        // Get initial session
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            setSession(session);
-        });
-
-        // Listen for auth changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            setSession(session);
-        });
-
-        return () => subscription.unsubscribe();
+        setPosts(getPosts());
+        setUsername(getUsername());
     }, []);
 
     const handleSaveUsername = (name) => {
@@ -35,44 +20,35 @@ function App() {
         setUsername(name);
     }
 
-    const handleAddPost = async (content) => {
-        const username = session?.user?.email?.split('@')[0] || 'Anonymous';
-        const newPost = await addPost(content, username);
-        if (newPost) {
-            setPosts([newPost, ...posts]);
-        }
+    const handleAddPost = (content, media, mediaType) => {
+        const newPost = addPost(content, username, media, mediaType);
+        setPosts([newPost, ...posts]);
     };
 
-    const handleDeletePost = async (id) => {
-        const success = await deletePost(id);
-        if (success) {
-            setPosts(posts.filter(post => post.id !== id));
-        }
+    const handleDeletePost = (id) => {
+        deletePost(id);
+        setPosts(posts.filter(post => post.id !== id));
     };
 
-    const handleLikePost = async (id) => {
-        const postToUpdate = posts.find(p => p.id === id);
-        if (!postToUpdate) return;
-        const updatedPost = await toggleLike(id, postToUpdate.likes);
-        if (updatedPost) {
-            setPosts(posts.map(post => post.id === id ? updatedPost : post));
-        }
+    const handleLikePost = (id) => {
+        toggleLike(id);
+        const updatedPosts = getPosts();
+        setPosts(updatedPosts);
     };
 
-    const handleAddComment = async (postId, content) => {
-        const username = session?.user?.email?.split('@')[0] || 'Anonymous';
-        await addComment(postId, content, username);
-        setPosts(await getPosts());
+    const handleAddComment = (postId, content) => {
+        addComment(postId, content, username);
+        setPosts(getPosts());
     };
 
-    const handleDeleteComment = async (postId, commentId) => {
-        await deleteComment(postId, commentId);
-        setPosts(await getPosts());
+    const handleDeleteComment = (postId, commentId) => {
+        deleteComment(postId, commentId);
+        setPosts(getPosts());
     };
 
-    const handleLikeComment = async (postId, commentId) => {
-        await toggleCommentLike(postId, commentId);
-        setPosts(await getPosts());
+    const handleLikeComment = (postId, commentId) => {
+        toggleCommentLike(postId, commentId);
+        setPosts(getPosts());
     };
 
     return (
@@ -94,7 +70,11 @@ function App() {
                     </p>
                 </div>
 
-                <PostInput onAddPost={handleAddPost} />
+                {username ? (
+                    <PostInput onAddPost={handleAddPost} />
+                ) : (
+                    <UsernameInput onSave={handleSaveUsername} />
+                )}
 
                 <div className="mt-20">
                     <div className="flex items-center gap-4 mb-8">
