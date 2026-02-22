@@ -2,9 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import PostInput from './components/PostInput';
 import Feed from './components/Feed';
-import Auth from './components/Auth';
-import { getPosts, addPost, deletePost, toggleLike } from './utils/storage';
-import { supabase } from './utils/supabase';
+import { getPosts, addPost, deletePost, toggleLike, getUsername, saveUsername } from './utils/storage';
 
 function App() {
     const [posts, setPosts] = useState([]);
@@ -31,12 +29,14 @@ function App() {
         return () => subscription.unsubscribe();
     }, []);
 
-    const handleAddPost = async (content) => {
-        if (!session?.user?.id) return;
-        const newPost = await addPost(content, session.user.id);
-        if (newPost) {
-            setPosts([newPost, ...posts]);
-        }
+    const handleSaveUsername = (name) => {
+        saveUsername(name);
+        setUsername(name);
+    }
+
+    const handleAddPost = (content) => {
+        const newPost = addPost(content, username);
+        setPosts([newPost, ...posts]);
     };
 
     const handleDeletePost = async (id) => {
@@ -46,19 +46,15 @@ function App() {
         }
     };
 
-    const handleLikePost = async (id) => {
-        const postToLike = posts.find(p => p.id === id);
-        if (!postToLike) return;
-
-        const updatedPost = await toggleLike(id, postToLike.likes);
-        if (updatedPost) {
-            setPosts(posts.map(post => post.id === id ? updatedPost : post));
-        }
+    const handleLikePost = (id) => {
+        toggleLike(id);
+        setPosts(posts.map(post => {
+            if (post.id === id) {
+                return { ...post, likes: post.likes + 1 };
+            }
+            return post;
+        }));
     };
-
-    if (!session) {
-        return <Auth onAuthSuccess={() => { }} />;
-    }
 
     return (
         <div className="min-h-screen bg-[#020617] text-slate-50 relative overflow-x-hidden">
@@ -90,6 +86,9 @@ function App() {
                         posts={posts}
                         onLike={handleLikePost}
                         onDelete={handleDeletePost}
+                        onAddComment={handleAddComment}
+                        onDeleteComment={handleDeleteComment}
+                        onLikeComment={handleLikeComment}
                     />
                 </div>
             </main>
