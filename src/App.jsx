@@ -1,32 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import PostInput from './components/PostInput';
+import UsernameInput from './components/UsernameInput';
 import Feed from './components/Feed';
-import { getPosts, addPost, deletePost, toggleLike, getUsername, saveUsername } from './utils/storage';
+import { getPosts, addPost, deletePost, toggleLike, getUsername, saveUsername, addComment, deleteComment, toggleCommentLike } from './utils/storage';
 
 function App() {
     const [posts, setPosts] = useState([]);
-    const [session, setSession] = useState(null);
+    const [username, setUsername] = useState('');
 
-    // Load posts and handle auth
+    // Load posts and username on initial render
     useEffect(() => {
-        const fetchInitialData = async () => {
-            const initialPosts = await getPosts();
-            setPosts(initialPosts);
-        };
-        fetchInitialData();
-
-        // Get initial session
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            setSession(session);
-        });
-
-        // Listen for auth changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            setSession(session);
-        });
-
-        return () => subscription.unsubscribe();
+        setPosts(getPosts());
+        setUsername(getUsername());
     }, []);
 
     const handleSaveUsername = (name) => {
@@ -34,26 +20,35 @@ function App() {
         setUsername(name);
     }
 
-    const handleAddPost = (content) => {
-        const newPost = addPost(content, username);
+    const handleAddPost = (content, media, mediaType) => {
+        const newPost = addPost(content, username, media, mediaType);
         setPosts([newPost, ...posts]);
     };
 
-    const handleDeletePost = async (id) => {
-        const success = await deletePost(id);
-        if (success) {
-            setPosts(posts.filter(post => post.id !== id));
-        }
+    const handleDeletePost = (id) => {
+        deletePost(id);
+        setPosts(posts.filter(post => post.id !== id));
     };
 
     const handleLikePost = (id) => {
         toggleLike(id);
-        setPosts(posts.map(post => {
-            if (post.id === id) {
-                return { ...post, likes: post.likes + 1 };
-            }
-            return post;
-        }));
+        const updatedPosts = getPosts();
+        setPosts(updatedPosts);
+    };
+
+    const handleAddComment = (postId, content) => {
+        addComment(postId, content, username);
+        setPosts(getPosts());
+    };
+
+    const handleDeleteComment = (postId, commentId) => {
+        deleteComment(postId, commentId);
+        setPosts(getPosts());
+    };
+
+    const handleLikeComment = (postId, commentId) => {
+        toggleCommentLike(postId, commentId);
+        setPosts(getPosts());
     };
 
     return (
@@ -75,7 +70,11 @@ function App() {
                     </p>
                 </div>
 
-                <PostInput onAddPost={handleAddPost} />
+                {username ? (
+                    <PostInput onAddPost={handleAddPost} />
+                ) : (
+                    <UsernameInput onSave={handleSaveUsername} />
+                )}
 
                 <div className="mt-20">
                     <div className="flex items-center gap-4 mb-8">

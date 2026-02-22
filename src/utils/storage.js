@@ -1,24 +1,31 @@
-import { supabase } from './supabase';
+const STORAGE_KEY = 'posts';
+const USERNAME_KEY = 'username';
 
-export const getPosts = async () => {
-    const { data, error } = await supabase
-        .from('posts')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-    if (error) {
-        console.error('Error fetching posts:', error);
-        return [];
-    }
-    return data;
+export const getUsername = () => {
+    return localStorage.getItem(USERNAME_KEY) || '';
 };
 
-export const addPost = (content, username) => {
+export const saveUsername = (username) => {
+    localStorage.setItem(USERNAME_KEY, username);
+};
+
+export const getPosts = () => {
+    const posts = localStorage.getItem(STORAGE_KEY);
+    return posts ? JSON.parse(posts) : [];
+};
+
+export const savePosts = (posts) => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
+};
+
+export const addPost = (content, username, media = null, mediaType = null) => {
     const posts = getPosts();
     const newPost = {
         id: Date.now(),
         username,
         content,
+        media,
+        mediaType,
         likes: 0,
         createdAt: new Date().toISOString()
     };
@@ -26,31 +33,25 @@ export const addPost = (content, username) => {
     return newPost;
 };
 
-export const deletePost = async (id) => {
-    const { error } = await supabase
-        .from('posts')
-        .delete()
-        .eq('id', id);
-
-    if (error) {
-        console.error('Error deleting post:', error);
-        return false;
-    }
+export const deletePost = (id) => {
+    const posts = getPosts();
+    const filteredPosts = posts.filter(post => post.id !== id);
+    savePosts(filteredPosts);
     return true;
 };
 
-export const toggleLike = async (id, currentLikes) => {
-    const { data, error } = await supabase
-        .from('posts')
-        .update({ likes: currentLikes + 1 })
-        .eq('id', id)
-        .select();
-
-    if (error) {
-        console.error('Error toggling like:', error);
-        return null;
-    }
-    return data[0];
+export const toggleLike = (id) => {
+    const posts = getPosts();
+    let updatedPost = null;
+    const updatedPosts = posts.map(post => {
+        if (post.id === id) {
+            updatedPost = { ...post, likes: post.likes + 1 };
+            return updatedPost;
+        }
+        return post;
+    });
+    savePosts(updatedPosts);
+    return updatedPost;
 };
 
 export const addComment = (postId, content, username) => {
