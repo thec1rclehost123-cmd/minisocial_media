@@ -42,18 +42,9 @@ const PostCard = ({ post, onLike, onDelete, onAddComment, onDeleteComment, onLik
 
                 <div className="mt-6 flex items-center justify-between text-xs text-slate-500">
                     <span>{new Date(post.createdAt).toLocaleDateString()}</span>
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={() => setShowComments(!showComments)}
-                            className="flex items-center gap-1 hover:text-indigo-400 transition-colors"
-                        >
-                            <MessageCircle size={14} className={showComments ? "text-indigo-400" : ""} />
-                            <span>{comments.length}</span>
-                        </button>
-                        <div className="flex items-center gap-1">
-                            <Heart size={14} className={post.likes > 0 ? "fill-rose-500 text-rose-500" : ""} />
-                            <span>{post.likes}</span>
-                        </div>
+                    <div className="flex items-center gap-1">
+                        <Heart size={14} className={post.likes > 0 ? "fill-rose-500 text-rose-500" : ""} />
+                        <span>{post.likes}</span>
                     </div>
                 </div>
             </div>

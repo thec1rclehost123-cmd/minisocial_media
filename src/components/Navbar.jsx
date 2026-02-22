@@ -1,7 +1,12 @@
 import React from 'react';
-import { Layout, Bell, User, Search } from 'lucide-react';
+import { Layout, Bell, User, Search, LogOut } from 'lucide-react';
+import { supabase } from '../utils/supabase';
 
 const Navbar = () => {
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+    };
+
     return (
         <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4">
             <div className="max-w-7xl mx-auto flex items-center justify-between glass rounded-3xl px-6 py-3 border-white/5">
@@ -30,8 +35,17 @@ const Navbar = () => {
                         <Bell size={22} />
                         <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-slate-900"></span>
                     </button>
-                    <div className="w-10 h-10 rounded-full glass border border-white/10 flex items-center justify-center text-slate-400 hover:text-white cursor-pointer transition-all">
-                        <User size={22} />
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full glass border border-white/10 flex items-center justify-center text-slate-400 hover:text-white cursor-pointer transition-all">
+                            <User size={22} />
+                        </div>
+                        <button
+                            onClick={handleLogout}
+                            className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all"
+                            title="Sign Out"
+                        >
+                            <LogOut size={20} />
+                        </button>
                     </div>
                 </div>
             </div>
