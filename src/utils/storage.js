@@ -13,17 +13,17 @@ export const getPosts = async () => {
     return data;
 };
 
-export const addPost = (content, username) => {
-    const posts = getPosts();
-    const newPost = {
-        id: Date.now(),
-        username,
-        content,
-        likes: 0,
-        createdAt: new Date().toISOString()
-    };
-    savePosts([newPost, ...posts]);
-    return newPost;
+export const addPost = async (content, username) => {
+    const { data, error } = await supabase
+        .from('posts')
+        .insert([{ content, username, likes: 0, comments: [] }])
+        .select();
+
+    if (error) {
+        console.error('Error adding post:', error);
+        return null;
+    }
+    return data[0];
 };
 
 export const deletePost = async (id) => {
@@ -53,51 +53,90 @@ export const toggleLike = async (id, currentLikes) => {
     return data[0];
 };
 
-export const addComment = (postId, content, username) => {
-    const posts = getPosts();
-    const updatedPosts = posts.map(post => {
-        if (post.id === postId) {
-            const newComment = {
-                id: Date.now(),
-                username,
-                content,
-                likes: 0,
-                createdAt: new Date().toISOString()
-            };
-            const currentComments = post.comments || [];
-            return { ...post, comments: [newComment, ...currentComments] };
-        }
-        return post;
-    });
-    savePosts(updatedPosts);
+export const addComment = async (postId, content, username) => {
+    const { data: post, error: fetchError } = await supabase
+        .from('posts')
+        .select('comments')
+        .eq('id', postId)
+        .single();
+
+    if (fetchError) return null;
+
+    const newComment = {
+        id: Date.now(),
+        username,
+        content,
+        likes: 0,
+        createdAt: new Date().toISOString()
+    };
+
+    const currentComments = post.comments || [];
+    const updatedComments = [newComment, ...currentComments];
+
+    const { data, error } = await supabase
+        .from('posts')
+        .update({ comments: updatedComments })
+        .eq('id', postId)
+        .select();
+
+    if (error) {
+        console.error('Error adding comment:', error);
+        return null;
+    }
+    return data ? data[0] : null;
 };
 
-export const deleteComment = (postId, commentId) => {
-    const posts = getPosts();
-    const updatedPosts = posts.map(post => {
-        if (post.id === postId) {
-            const currentComments = post.comments || [];
-            return { ...post, comments: currentComments.filter(c => c.id !== commentId) };
-        }
-        return post;
-    });
-    savePosts(updatedPosts);
+export const deleteComment = async (postId, commentId) => {
+    const { data: post, error: fetchError } = await supabase
+        .from('posts')
+        .select('comments')
+        .eq('id', postId)
+        .single();
+
+    if (fetchError) return null;
+
+    const currentComments = post.comments || [];
+    const updatedComments = currentComments.filter(c => c.id !== commentId);
+
+    const { data, error } = await supabase
+        .from('posts')
+        .update({ comments: updatedComments })
+        .eq('id', postId)
+        .select();
+
+    if (error) {
+        console.error('Error deleting comment:', error);
+        return null;
+    }
+    return data ? data[0] : null;
 };
 
-export const toggleCommentLike = (postId, commentId) => {
-    const posts = getPosts();
-    const updatedPosts = posts.map(post => {
-        if (post.id === postId) {
-            const currentComments = post.comments || [];
-            const updatedComments = currentComments.map(c => {
-                if (c.id === commentId) {
-                    return { ...c, likes: c.likes + 1 };
-                }
-                return c;
-            });
-            return { ...post, comments: updatedComments };
+export const toggleCommentLike = async (postId, commentId) => {
+    const { data: post, error: fetchError } = await supabase
+        .from('posts')
+        .select('comments')
+        .eq('id', postId)
+        .single();
+
+    if (fetchError) return null;
+
+    const currentComments = post.comments || [];
+    const updatedComments = currentComments.map(c => {
+        if (c.id === commentId) {
+            return { ...c, likes: c.likes + 1 };
         }
-        return post;
+        return c;
     });
-    savePosts(updatedPosts);
+
+    const { data, error } = await supabase
+        .from('posts')
+        .update({ comments: updatedComments })
+        .eq('id', postId)
+        .select();
+
+    if (error) {
+        console.error('Error toggling comment like:', error);
+        return null;
+    }
+    return data ? data[0] : null;
 };

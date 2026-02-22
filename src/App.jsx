@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import PostInput from './components/PostInput';
 import Feed from './components/Feed';
-import { getPosts, addPost, deletePost, toggleLike, getUsername, saveUsername } from './utils/storage';
+import { supabase } from './utils/supabase';
+import { getPosts, addPost, deletePost, toggleLike, addComment, deleteComment, toggleCommentLike } from './utils/storage';
 
 function App() {
     const [posts, setPosts] = useState([]);
@@ -34,9 +35,12 @@ function App() {
         setUsername(name);
     }
 
-    const handleAddPost = (content) => {
-        const newPost = addPost(content, username);
-        setPosts([newPost, ...posts]);
+    const handleAddPost = async (content) => {
+        const username = session?.user?.email?.split('@')[0] || 'Anonymous';
+        const newPost = await addPost(content, username);
+        if (newPost) {
+            setPosts([newPost, ...posts]);
+        }
     };
 
     const handleDeletePost = async (id) => {
@@ -46,14 +50,29 @@ function App() {
         }
     };
 
-    const handleLikePost = (id) => {
-        toggleLike(id);
-        setPosts(posts.map(post => {
-            if (post.id === id) {
-                return { ...post, likes: post.likes + 1 };
-            }
-            return post;
-        }));
+    const handleLikePost = async (id) => {
+        const postToUpdate = posts.find(p => p.id === id);
+        if (!postToUpdate) return;
+        const updatedPost = await toggleLike(id, postToUpdate.likes);
+        if (updatedPost) {
+            setPosts(posts.map(post => post.id === id ? updatedPost : post));
+        }
+    };
+
+    const handleAddComment = async (postId, content) => {
+        const username = session?.user?.email?.split('@')[0] || 'Anonymous';
+        await addComment(postId, content, username);
+        setPosts(await getPosts());
+    };
+
+    const handleDeleteComment = async (postId, commentId) => {
+        await deleteComment(postId, commentId);
+        setPosts(await getPosts());
+    };
+
+    const handleLikeComment = async (postId, commentId) => {
+        await toggleCommentLike(postId, commentId);
+        setPosts(await getPosts());
     };
 
     return (
