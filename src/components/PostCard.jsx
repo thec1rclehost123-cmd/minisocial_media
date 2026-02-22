@@ -18,7 +18,7 @@ const PostCard = ({ post, onLike, onDelete }) => {
                 </p>
 
                 <div className="mt-6 flex items-center justify-between text-xs text-slate-500">
-                    <span>{new Date(post.createdAt).toLocaleDateString()}</span>
+                    <span>{new Date(post.created_at).toLocaleDateString()}</span>
                     <div className="flex items-center gap-1">
                         <Heart size={14} className={post.likes > 0 ? "fill-rose-500 text-rose-500" : ""} />
                         <span>{post.likes}</span>

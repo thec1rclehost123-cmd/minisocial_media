@@ -36,3 +36,13 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.animate-shake {
+  animation: shake 0.2s ease-in-out 0s 2;
+}
