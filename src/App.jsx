@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
-import CreatePost from './components/CreatePost';
+import PostInput from './components/PostInput';
 import Feed from './components/Feed';
 import Auth from './components/Auth';
 import { getPosts, addPost, deletePost, toggleLike } from './utils/storage';
@@ -79,7 +79,7 @@ function App() {
                     </p>
                 </div>
 
-                <CreatePost onAddPost={handleAddPost} />
+                <PostInput onAddPost={handleAddPost} />
 
                 <div className="mt-20">
                     <div className="flex items-center gap-4 mb-8">

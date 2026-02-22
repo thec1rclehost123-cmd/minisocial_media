@@ -10,7 +10,7 @@ const PostCard = ({ post, onLike, onDelete }) => {
                     <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center">
                         <User size={16} className="text-white" />
                     </div>
-                    <span className="text-sm font-medium text-slate-300">User</span>
+                    <span className="text-sm font-medium text-slate-300">{post.username || "Anonymous"}</span>
                 </div>
 
                 <p className="text-slate-100 leading-relaxed">
