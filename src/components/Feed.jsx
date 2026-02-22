@@ -1,7 +1,7 @@
 import React from 'react';
 import PostCard from './PostCard';
 
-const Feed = ({ posts, onLike, onDelete }) => {
+const Feed = ({ posts, onLike, onDelete, onAddComment, onDeleteComment, onLikeComment }) => {
     if (posts.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-20 text-slate-500">
@@ -21,6 +21,9 @@ const Feed = ({ posts, onLike, onDelete }) => {
                     post={post}
                     onLike={onLike}
                     onDelete={onDelete}
+                    onAddComment={onAddComment}
+                    onDeleteComment={onDeleteComment}
+                    onLikeComment={onLikeComment}
                 />
             ))}
         </div>

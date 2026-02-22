@@ -3,7 +3,7 @@ import Navbar from './components/Navbar';
 import PostInput from './components/PostInput';
 import UsernameInput from './components/UsernameInput';
 import Feed from './components/Feed';
-import { getPosts, addPost, deletePost, toggleLike, getUsername, saveUsername } from './utils/storage';
+import { getPosts, addPost, deletePost, toggleLike, getUsername, saveUsername, addComment, deleteComment, toggleCommentLike } from './utils/storage';
 
 function App() {
     const [posts, setPosts] = useState([]);
@@ -20,8 +20,8 @@ function App() {
         setUsername(name);
     }
 
-    const handleAddPost = (content) => {
-        const newPost = addPost(content, username);
+    const handleAddPost = (content, media, mediaType) => {
+        const newPost = addPost(content, username, media, mediaType);
         setPosts([newPost, ...posts]);
     };
 
@@ -38,6 +38,21 @@ function App() {
             }
             return post;
         }));
+    };
+
+    const handleAddComment = (postId, content) => {
+        addComment(postId, content, username);
+        setPosts(getPosts());
+    };
+
+    const handleDeleteComment = (postId, commentId) => {
+        deleteComment(postId, commentId);
+        setPosts(getPosts());
+    };
+
+    const handleLikeComment = (postId, commentId) => {
+        toggleCommentLike(postId, commentId);
+        setPosts(getPosts());
     };
 
     return (
@@ -74,6 +89,9 @@ function App() {
                         posts={posts}
                         onLike={handleLikePost}
                         onDelete={handleDeletePost}
+                        onAddComment={handleAddComment}
+                        onDeleteComment={handleDeleteComment}
+                        onLikeComment={handleLikeComment}
                     />
                 </div>
             </main>
