@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Heart, Trash2, User, MessageCircle, Send } from 'lucide-react';
 
-const PostCard = ({ post, onLike, onDelete, onAddComment, onDeleteComment, onLikeComment }) => {
+const PostCard = ({ post, onLike, onDelete, onAddComment, onDeleteComment, onLikeComment, currentUsername }) => {
     const [commentText, setCommentText] = useState('');
     const [showComments, setShowComments] = useState(false);
 
@@ -14,6 +14,8 @@ const PostCard = ({ post, onLike, onDelete, onAddComment, onDeleteComment, onLik
     };
 
     const comments = post.comments || [];
+    const postLikes = Array.isArray(post.likes) ? post.likes : [];
+    const isLiked = postLikes.includes(currentUsername);
 
     return (
         <div className="group relative break-inside-avoid mb-6 rounded-3xl overflow-hidden glass transition-all duration-300 hover:shadow-[0_0_20px_rgba(99,102,241,0.2)] hover:scale-[1.02] flex flex-col">
@@ -51,8 +53,8 @@ const PostCard = ({ post, onLike, onDelete, onAddComment, onDeleteComment, onLik
                             <span>{comments.length}</span>
                         </button>
                         <div className="flex items-center gap-1">
-                            <Heart size={14} className={post.likes > 0 ? "fill-rose-500 text-rose-500" : ""} />
-                            <span>{post.likes}</span>
+                            <Heart size={14} className={postLikes.length > 0 ? (isLiked ? "fill-rose-500 text-rose-500" : "text-rose-500") : ""} />
+                            <span>{postLikes.length}</span>
                         </div>
                     </div>
                 </div>
@@ -98,8 +100,16 @@ const PostCard = ({ post, onLike, onDelete, onAddComment, onDeleteComment, onLik
                                                 onClick={() => onLikeComment(post.id, comment.id)}
                                                 className="flex items-center gap-1 hover:text-rose-400 transition-colors"
                                             >
-                                                <Heart size={12} className={comment.likes > 0 ? "fill-rose-500 text-rose-500" : ""} />
-                                                <span>{comment.likes}</span>
+                                                {(() => {
+                                                    const commentLikes = Array.isArray(comment.likes) ? comment.likes : [];
+                                                    const isCommentLiked = commentLikes.includes(currentUsername);
+                                                    return (
+                                                        <>
+                                                            <Heart size={12} className={commentLikes.length > 0 ? (isCommentLiked ? "fill-rose-500 text-rose-500" : "text-rose-500") : ""} />
+                                                            <span>{commentLikes.length}</span>
+                                                        </>
+                                                    );
+                                                })()}
                                             </button>
                                             <button
                                                 onClick={() => onDeleteComment(post.id, comment.id)}
@@ -121,9 +131,9 @@ const PostCard = ({ post, onLike, onDelete, onAddComment, onDeleteComment, onLik
                 <button
                     onClick={() => onLike(post.id)}
                     className="p-3 rounded-full bg-white text-slate-900 hover:bg-rose-500 hover:text-white transition-all duration-200 transform hover:scale-110 shadow-lg pointer-events-auto"
-                    title="Like"
+                    title={isLiked ? "Unlike" : "Like"}
                 >
-                    <Heart size={20} className={post.likes > 0 ? "fill-current" : ""} />
+                    <Heart size={20} className={isLiked ? "fill-current text-rose-500" : ""} />
                 </button>
                 <button
                     onClick={() => onDelete(post.id)}
