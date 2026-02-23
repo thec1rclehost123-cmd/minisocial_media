@@ -3,6 +3,7 @@ import Navbar from './components/Navbar';
 import PostInput from './components/PostInput';
 import UsernameInput from './components/UsernameInput';
 import Feed from './components/Feed';
+import Auth from './components/Auth';
 import { getPosts, addPost, deletePost, toggleLike, getUsername, saveUsername, addComment, deleteComment, toggleCommentLike } from './utils/storage';
 import {
     fetchSupabasePosts,
@@ -13,10 +14,13 @@ import {
     deleteSupabasePost,
     deleteSupabaseComment
 } from './utils/supabaseStorage';
+import { supabase } from './utils/supabase';
 
 function App() {
     const [posts, setPosts] = useState([]);
     const [username, setUsername] = useState('');
+    const [session, setSession] = useState(null);
+    const [authLoading, setAuthLoading] = useState(true);
 
     // Load posts and username on initial render
     // Load posts and username on initial render
@@ -35,6 +39,24 @@ function App() {
         };
 
         loadInitialData();
+    // Handle auth state and load data
+    useEffect(() => {
+        // Get initial session
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            setSession(session);
+            setAuthLoading(false);
+        });
+
+        // Listen for auth changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            setSession(session);
+        });
+
+        // Load local data
+        setPosts(getPosts());
+        setUsername(getUsername());
+
+        return () => subscription.unsubscribe();
     }, []);
 
     const handleSaveUsername = (name) => {
@@ -127,6 +149,25 @@ function App() {
         setPosts(getPosts());
     };
 
+    const handleSignOut = async () => {
+        await supabase.auth.signOut();
+        setSession(null);
+    };
+
+    // Show loading while checking auth
+    if (authLoading) {
+        return (
+            <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+                <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        );
+    }
+
+    // Show Auth screen if not logged in
+    if (!session) {
+        return <Auth onAuthSuccess={() => { }} />;
+    }
+
     return (
         <div className="min-h-screen bg-[#020617] text-slate-50 relative overflow-x-hidden">
             {/* Background blobs for premium feel */}
@@ -171,6 +212,12 @@ function App() {
 
             <footer className="relative z-10 border-t border-white/5 py-10 text-center text-slate-500 text-sm">
                 <p>&copy; 2026 MiniSocial Project. Built with Teamwork.</p>
+                <button
+                    onClick={handleSignOut}
+                    className="mt-4 text-xs text-slate-600 hover:text-red-400 transition-colors"
+                >
+                    Sign Out
+                </button>
             </footer>
         </div>
     );
