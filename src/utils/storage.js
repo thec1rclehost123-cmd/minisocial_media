@@ -26,7 +26,7 @@ export const addPost = (content, username, media = null, mediaType = null) => {
         content,
         media,
         mediaType,
-        likes: 0,
+        likes: [],
         createdAt: new Date().toISOString()
     };
     savePosts([newPost, ...posts]);
@@ -40,12 +40,22 @@ export const deletePost = (id) => {
     return true;
 };
 
-export const toggleLike = (id) => {
+export const toggleLike = (id, username) => {
     const posts = getPosts();
     let updatedPost = null;
     const updatedPosts = posts.map(post => {
         if (post.id === id) {
-            updatedPost = { ...post, likes: post.likes + 1 };
+            let currentLikes = Array.isArray(post.likes) ? [...post.likes] : [];
+            
+            if (currentLikes.includes(username)) {
+                // Unlike: remove user from likes
+                currentLikes = currentLikes.filter(u => u !== username);
+            } else {
+                // Like: add user to likes
+                currentLikes.push(username);
+            }
+            
+            updatedPost = { ...post, likes: currentLikes };
             return updatedPost;
         }
         return post;
@@ -62,7 +72,7 @@ export const addComment = (postId, content, username) => {
                 id: Date.now(),
                 username,
                 content,
-                likes: 0,
+                likes: [],
                 createdAt: new Date().toISOString()
             };
             const currentComments = post.comments || [];
@@ -85,14 +95,24 @@ export const deleteComment = (postId, commentId) => {
     savePosts(updatedPosts);
 };
 
-export const toggleCommentLike = (postId, commentId) => {
+export const toggleCommentLike = (postId, commentId, username) => {
     const posts = getPosts();
     const updatedPosts = posts.map(post => {
         if (post.id === postId) {
             const currentComments = post.comments || [];
             const updatedComments = currentComments.map(c => {
                 if (c.id === commentId) {
-                    return { ...c, likes: c.likes + 1 };
+                    let currentLikes = Array.isArray(c.likes) ? [...c.likes] : [];
+                    
+                    if (currentLikes.includes(username)) {
+                        // Unlike
+                        currentLikes = currentLikes.filter(u => u !== username);
+                    } else {
+                        // Like
+                        currentLikes.push(username);
+                    }
+                    
+                    return { ...c, likes: currentLikes };
                 }
                 return c;
             });

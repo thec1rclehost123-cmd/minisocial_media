@@ -5,6 +5,15 @@ import UsernameInput from './components/UsernameInput';
 import Feed from './components/Feed';
 import Auth from './components/Auth';
 import { getPosts, addPost, deletePost, toggleLike, getUsername, saveUsername, addComment, deleteComment, toggleCommentLike } from './utils/storage';
+import {
+    fetchSupabasePosts,
+    insertSupabasePost,
+    toggleSupabasePostLike,
+    insertSupabaseComment,
+    toggleSupabaseCommentLike,
+    deleteSupabasePost,
+    deleteSupabaseComment
+} from './utils/supabaseStorage';
 import { supabase } from './utils/supabase';
 
 function App() {
@@ -13,6 +22,23 @@ function App() {
     const [session, setSession] = useState(null);
     const [authLoading, setAuthLoading] = useState(true);
 
+    // Load posts and username on initial render
+    // Load posts and username on initial render
+    useEffect(() => {
+        const loadInitialData = async () => {
+            setUsername(getUsername());
+
+            // Try fetching from Supabase first
+            const supabasePosts = await fetchSupabasePosts();
+            if (supabasePosts) {
+                setPosts(supabasePosts);
+            } else {
+                // Fallback to local storage
+                setPosts(getPosts());
+            }
+        };
+
+        loadInitialData();
     // Handle auth state and load data
     useEffect(() => {
         // Get initial session
@@ -38,34 +64,88 @@ function App() {
         setUsername(name);
     }
 
-    const handleAddPost = (content, media, mediaType) => {
-        const newPost = addPost(content, username, media, mediaType);
-        setPosts([newPost, ...posts]);
+    const handleAddPost = async (content, media, mediaType) => {
+        // Optimistic UI update or just wait for Supabase
+        const result = await insertSupabasePost(content, username, media, mediaType);
+
+        if (result) {
+            setPosts([result, ...posts]);
+        } else {
+            // Fallback to local storage
+            const newPost = addPost(content, username, media, mediaType);
+            setPosts([newPost, ...posts]);
+        }
     };
 
-    const handleDeletePost = (id) => {
-        deletePost(id);
-        setPosts(posts.filter(post => post.id !== id));
+    const handleDeletePost = async (id) => {
+        const result = await deleteSupabasePost(id);
+
+        if (result !== null) {
+            setPosts(posts.filter(post => post.id !== id));
+        } else {
+            // Fallback
+            deletePost(id);
+            setPosts(posts.filter(post => post.id !== id));
+        }
     };
 
-    const handleLikePost = (id) => {
-        toggleLike(id);
-        const updatedPosts = getPosts();
-        setPosts(updatedPosts);
+    const handleLikePost = async (id) => {
+        const result = await toggleSupabasePostLike(id, username);
+
+        if (result !== null) {
+            // Refetch to get updated state across users
+            const updatedPosts = await fetchSupabasePosts();
+            if (updatedPosts) {
+                setPosts(updatedPosts);
+                return;
+            }
+        }
+
+        // Fallback or if result was null (Supabase error)
+        toggleLike(id, username);
+        const updatedPostsLocal = getPosts();
+        setPosts(updatedPostsLocal);
     };
 
-    const handleAddComment = (postId, content) => {
-        addComment(postId, content, username);
-        setPosts(getPosts());
+    const handleAddComment = async (postId, content) => {
+        const result = await insertSupabaseComment(postId, content, username);
+
+        if (result) {
+            const updatedPosts = await fetchSupabasePosts();
+            if (updatedPosts) setPosts(updatedPosts);
+        } else {
+            // Fallback
+            addComment(postId, content, username);
+            setPosts(getPosts());
+        }
     };
 
-    const handleDeleteComment = (postId, commentId) => {
-        deleteComment(postId, commentId);
-        setPosts(getPosts());
+    const handleDeleteComment = async (postId, commentId) => {
+        const result = await deleteSupabaseComment(commentId);
+
+        if (result !== null) {
+            const updatedPosts = await fetchSupabasePosts();
+            if (updatedPosts) setPosts(updatedPosts);
+        } else {
+            // Fallback
+            deleteComment(postId, commentId);
+            setPosts(getPosts());
+        }
     };
 
-    const handleLikeComment = (postId, commentId) => {
-        toggleCommentLike(postId, commentId);
+    const handleLikeComment = async (postId, commentId) => {
+        const result = await toggleSupabaseCommentLike(commentId, username);
+
+        if (result !== null) {
+            const updatedPosts = await fetchSupabasePosts();
+            if (updatedPosts) {
+                setPosts(updatedPosts);
+                return;
+            }
+        }
+
+        // Fallback
+        toggleCommentLike(postId, commentId, username);
         setPosts(getPosts());
     };
 
@@ -125,6 +205,7 @@ function App() {
                         onAddComment={handleAddComment}
                         onDeleteComment={handleDeleteComment}
                         onLikeComment={handleLikeComment}
+                        currentUsername={username}
                     />
                 </div>
             </main>
