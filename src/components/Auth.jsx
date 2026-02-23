@@ -32,64 +32,68 @@ const Auth = ({ onAuthSuccess }) => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-6 bg-[#020617] relative overflow-hidden">
-            {/* Dynamic Background */}
+        <div className="min-h-screen flex items-center justify-center p-6 bg-[#020617] relative overflow-hidden selection:bg-indigo-500/30">
+            {/* Dynamic Background Blobs */}
             <div className="absolute top-0 left-0 w-full h-full">
-                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-600/20 blur-[120px] rounded-full animate-pulse"></div>
-                <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-600/20 blur-[120px] rounded-full animate-pulse delay-1000"></div>
+                <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-indigo-600/10 blur-[150px] rounded-full animate-pulse-soft"></div>
+                <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-purple-600/10 blur-[150px] rounded-full animate-float delay-1000"></div>
+                <div className="absolute top-[30%] right-[10%] w-[20%] h-[20%] bg-blue-500/5 blur-[100px] rounded-full animate-pulse-soft"></div>
             </div>
 
             {/* Auth Card */}
-            <div className="relative z-10 w-full max-w-md transform transition-all duration-500">
-                <div className="bg-white/5 backdrop-blur-2xl border border-white/10 p-8 rounded-3xl shadow-2xl">
+            <div className="relative z-10 w-full max-w-md animate-reveal">
+                <div className="glass rounded-[2.5rem] p-10 border-white/10 shadow-2xl backdrop-blur-3xl relative overflow-hidden group">
+                    {/* Subtle top light */}
+                    <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent"></div>
+
                     {/* Header */}
-                    <div className="text-center mb-8">
-                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-500 to-purple-500 mb-4 shadow-lg shadow-indigo-500/20">
-                            <LogIn className="w-8 h-8 text-white" />
+                    <div className="text-center mb-10">
+                        <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-tr from-indigo-500 to-purple-500 mb-6 shadow-2xl shadow-indigo-500/30 group-hover:scale-110 group-hover:rotate-6 transition-all duration-700">
+                            <LogIn className="w-10 h-10 text-white" />
                         </div>
-                        <h1 className="text-3xl font-bold text-white mb-2">
-                            {isSignUp ? 'Join the Community' : 'Welcome Back'}
+                        <h1 className="text-4xl font-black text-white mb-3 tracking-tight">
+                            {isSignUp ? 'Join the Tribe' : 'Welcome Back'}
                         </h1>
-                        <p className="text-slate-400">
-                            {isSignUp ? 'Start your creative journey today' : 'Continue your inspiration hunt'}
+                        <p className="text-slate-500 font-medium">
+                            {isSignUp ? 'Begin your creative journey today.' : 'Your sanctuary of inspiration awaits.'}
                         </p>
                     </div>
 
                     {error && (
-                        <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm animate-shake">
+                        <div className="mb-8 p-4 rounded-2xl bg-red-500/5 border border-red-500/10 text-red-500 text-sm font-medium animate-shake text-center">
                             {error}
                         </div>
                     )}
 
-                    <form onSubmit={handleAuth} className="space-y-4">
-                        <div className="relative group">
-                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
+                    <form onSubmit={handleAuth} className="space-y-5">
+                        <div className="relative group/input">
+                            <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within/input:text-indigo-400 transition-colors" />
                             <input
                                 type="email"
                                 placeholder="Email Address"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="w-full bg-slate-900/50 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white placeholder-slate-500 outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 transition-all"
+                                className="w-full bg-white/[0.03] border border-white/5 rounded-2xl py-4 pl-14 pr-6 text-white placeholder-slate-600 outline-none focus:border-indigo-500/30 focus:bg-white/[0.06] transition-all duration-300 font-medium"
                                 required
                             />
                         </div>
 
-                        <div className="relative group">
-                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
+                        <div className="relative group/input">
+                            <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within/input:text-indigo-400 transition-colors" />
                             <input
                                 type="password"
-                                placeholder="Password"
+                                placeholder="Security Key"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="w-full bg-slate-900/50 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white placeholder-slate-500 outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 transition-all"
+                                className="w-full bg-white/[0.03] border border-white/5 rounded-2xl py-4 pl-14 pr-6 text-white placeholder-slate-600 outline-none focus:border-indigo-500/30 focus:bg-white/[0.06] transition-all duration-300 font-medium"
                                 required
                             />
                         </div>
 
                         {!isSignUp && (
                             <div className="text-right">
-                                <button type="button" className="text-sm text-indigo-400 hover:text-indigo-300 transition-colors">
-                                    Forgot password?
+                                <button type="button" className="text-xs font-bold text-slate-500 hover:text-indigo-400 transition-colors tracking-widest uppercase">
+                                    Lost keys?
                                 </button>
                             </div>
                         )}
@@ -97,52 +101,53 @@ const Auth = ({ onAuthSuccess }) => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-white text-slate-950 font-bold py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-slate-100 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-white/5"
+                            className="btn-premium w-full py-4 text-lg"
                         >
                             {loading ? (
-                                <Loader2 className="w-5 h-5 animate-spin" />
+                                <Loader2 className="w-6 h-6 animate-spin mx-auto" />
                             ) : (
-                                <>
-                                    {isSignUp ? 'Create Account' : 'Sign In'}
-                                    <ArrowRight className="w-5 h-5" />
-                                </>
+                                <span className="flex items-center justify-center gap-2">
+                                    {isSignUp ? 'Create Account' : 'Authenticate'}
+                                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                </span>
                             )}
                         </button>
                     </form>
 
                     {/* Divider */}
-                    <div className="my-8 flex items-center gap-4">
-                        <div className="h-[1px] flex-1 bg-white/5"></div>
-                        <span className="text-slate-500 text-xs uppercase tracking-widest font-semibold">Or continue with</span>
-                        <div className="h-[1px] flex-1 bg-white/5"></div>
+                    <div className="my-10 flex items-center gap-4">
+                        <div className="h-[1px] flex-1 bg-white/[0.05]"></div>
+                        <span className="text-slate-600 text-[10px] uppercase tracking-[0.2em] font-black">Social Connect</span>
+                        <div className="h-[1px] flex-1 bg-white/[0.05]"></div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                        <button className="flex items-center justify-center gap-2 py-3 rounded-xl bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10 hover:text-white transition-all">
+                        <button className="flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-white/[0.03] border border-white/5 text-slate-400 hover:bg-white/[0.06] hover:text-white hover:border-white/10 transition-all duration-300 font-bold text-sm">
                             <Github className="w-5 h-5" />
                             <span>GitHub</span>
                         </button>
-                        <button className="flex items-center justify-center gap-2 py-3 rounded-xl bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10 hover:text-white transition-all">
+                        <button className="flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-white/[0.03] border border-white/5 text-slate-400 hover:bg-white/[0.06] hover:text-white hover:border-white/10 transition-all duration-300 font-bold text-sm">
                             <Chrome className="w-5 h-5" />
                             <span>Google</span>
                         </button>
                     </div>
 
                     {/* Toggle */}
-                    <div className="mt-8 text-center pt-8 border-t border-white/5">
-                        <p className="text-slate-400">
-                            {isSignUp ? 'Already have an account?' : "Don't have an account?"}
+                    <div className="mt-10 text-center pt-8 border-t border-white/[0.05]">
+                        <p className="text-slate-500 font-medium">
+                            {isSignUp ? 'Already a member?' : "New to the sanctuary?"}
                             <button
                                 onClick={() => setIsSignUp(!isSignUp)}
-                                className="ml-2 text-white font-semibold hover:text-indigo-400 transition-colors"
+                                className="ml-2 text-white font-bold hover:text-indigo-400 transition-all underline underline-offset-4"
                             >
-                                {isSignUp ? 'Sign In' : 'Sign Up Free'}
+                                {isSignUp ? 'Sign In' : 'Join Now'}
                             </button>
                         </p>
                     </div>
                 </div>
             </div>
         </div>
+
     );
 };
 

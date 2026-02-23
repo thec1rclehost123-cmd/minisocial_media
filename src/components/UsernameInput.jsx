@@ -12,38 +12,39 @@ const UsernameInput = ({ onSave }) => {
     };
 
     return (
-        <div className="max-w-xl mx-auto mb-12">
-            <form onSubmit={handleSubmit} className="glass rounded-[2rem] p-6 border-white/5 shadow-xl">
-                <div className="flex flex-col gap-4">
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center border border-white/10">
-                            <User size={24} className="text-indigo-400" />
+        <div className="max-w-xl mx-auto mb-16 animate-reveal">
+            <form onSubmit={handleSubmit} className="glass rounded-[2.5rem] p-8 border-white/10 shadow-2xl relative overflow-hidden group">
+                <div className="flex flex-col gap-6">
+                    <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-500/10 to-purple-500/10 flex items-center justify-center border border-white/10 shadow-inner group-focus-within:scale-110 transition-transform duration-500">
+                            <User size={28} className="text-indigo-400" />
                         </div>
                         <div>
-                            <h3 className="text-xl font-semibold">Welcome to MiniSocial</h3>
-                            <p className="text-sm text-slate-400">Please enter a username to start sharing.</p>
+                            <h3 className="text-2xl font-black tracking-tight text-white mb-1 leading-tight">Identity First</h3>
+                            <p className="text-sm text-slate-500 font-medium">How should the community recognize you?</p>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-4">
                         <input
                             type="text"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
-                            placeholder="Enter username..."
-                            className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-slate-100 placeholder:text-slate-500 transition-all font-medium"
+                            placeholder="Type your alias..."
+                            className="flex-1 bg-white/[0.03] border border-white/5 rounded-2xl px-5 py-4 focus:outline-none focus:border-indigo-500/30 focus:bg-white/[0.06] text-slate-100 placeholder:text-slate-600 transition-all font-semibold text-lg"
                         />
                         <button
                             type="submit"
                             disabled={!username.trim()}
-                            className="bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 disabled:bg-slate-700 text-white font-semibold px-6 py-3 rounded-2xl flex items-center gap-2 transition-all transform active:scale-95 shadow-lg shadow-indigo-500/25 whitespace-nowrap"
+                            className="btn-primary flex items-center gap-2 h-full"
                         >
-                            Save <Check size={18} />
+                            Confirm <Check size={20} className="group-hover:scale-110 transition-transform" />
                         </button>
                     </div>
                 </div>
             </form>
         </div>
+
     );
 };
 
