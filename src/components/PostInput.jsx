@@ -29,8 +29,6 @@ const PostInput = ({ onAddPost }) => {
     const handleSubmit = (e) => {
         e.preventDefault();
         if (content.trim() || media) {
-            // In a real app, you'd upload the file and get a URL. 
-            // For this local demo, we'll store the data URL so it persists in localStorage
             if (media) {
                 const reader = new FileReader();
                 reader.onloadend = () => {
@@ -47,39 +45,44 @@ const PostInput = ({ onAddPost }) => {
     };
 
     return (
-        <div className="max-w-xl mx-auto mb-12">
-            <form onSubmit={handleSubmit} className="glass rounded-[2rem] p-4 border-white/5 shadow-xl">
-                <div className="flex gap-4">
-                    <div className="hidden sm:flex w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/20 items-center justify-center border border-white/10">
-                        <Smile size={24} className="text-indigo-400" />
+        <div className="max-w-4xl mx-auto mb-24 animate-reveal">
+            <form onSubmit={handleSubmit} className="glass-card-premium rounded-[3rem] p-10 border-white/10 shadow-2xl relative overflow-hidden group/form">
+                {/* Gradient Accent */}
+                <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent"></div>
+
+                <div className="flex gap-8">
+                    <div className="hidden sm:flex w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-indigo-500/10 to-purple-500/10 items-center justify-center border border-white/10 shrink-0 group-focus-within/form:scale-110 transition-transform duration-500 shadow-inner">
+                        <Smile size={32} className="text-indigo-400 group-focus-within/form:rotate-12 transition-transform" />
                     </div>
-                    <div className="flex-1 flex flex-col gap-3">
+                    <div className="flex-1 flex flex-col gap-6">
                         <textarea
                             value={content}
                             onChange={(e) => setContent(e.target.value)}
-                            placeholder="What's your inspiration?"
-                            className="bg-transparent border-none focus:ring-0 text-slate-100 placeholder:text-slate-500 resize-none py-3 text-lg w-full h-24"
+                            placeholder="Share your creative spark..."
+                            className="bg-transparent border-none focus:ring-0 text-slate-100 placeholder:text-slate-600 resize-none py-2 text-2xl w-full h-32 custom-scrollbar font-medium"
                         />
+
                         {previewUrl && (
-                            <div className="relative mt-2 rounded-xl overflow-hidden border border-white/10 group bg-black/20">
+                            <div className="relative mt-4 rounded-3xl overflow-hidden border border-white/10 group bg-black/60 shadow-inner animate-reveal">
                                 {mediaType === 'image' ? (
-                                    <img src={previewUrl} alt="Preview" className="max-h-64 w-auto object-contain mx-auto" />
+                                    <img src={previewUrl} alt="Preview" className="max-h-96 w-full object-contain mx-auto" />
                                 ) : (
-                                    <video src={previewUrl} className="max-h-64 w-auto mx-auto" controls />
+                                    <video src={previewUrl} className="max-h-96 w-full mx-auto" controls />
                                 )}
                                 <button
                                     type="button"
                                     onClick={clearMedia}
-                                    className="absolute top-2 right-2 p-1.5 bg-slate-900/80 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-rose-500"
+                                    className="absolute top-6 right-6 p-3 bg-slate-950/80 text-white rounded-2xl opacity-0 group-hover:opacity-100 transition-all hover:bg-rose-500 hover:scale-110 shadow-2xl"
                                 >
-                                    <X size={16} />
+                                    <X size={20} />
                                 </button>
                             </div>
                         )}
-                        <div className="flex items-center justify-between border-t border-white/5 pt-3 mt-2">
+
+                        <div className="flex items-center justify-between border-t border-white/5 pt-8 mt-2">
                             <div className="flex gap-2">
-                                <label className="p-2 text-slate-400 hover:text-indigo-400 hover:bg-white/5 rounded-xl transition-all cursor-pointer">
-                                    <ImageIcon size={20} />
+                                <label className="p-4 text-slate-500 hover:text-indigo-400 hover:bg-white/5 rounded-2xl transition-all cursor-pointer group/icon">
+                                    <ImageIcon size={24} className="group-hover/icon:scale-110 transition-transform" />
                                     <input
                                         type="file"
                                         accept="image/*"
@@ -87,8 +90,8 @@ const PostInput = ({ onAddPost }) => {
                                         onChange={(e) => handleMediaChange(e, 'image')}
                                     />
                                 </label>
-                                <label className="p-2 text-slate-400 hover:text-indigo-400 hover:bg-white/5 rounded-xl transition-all cursor-pointer">
-                                    <Video size={20} />
+                                <label className="p-4 text-slate-500 hover:text-indigo-400 hover:bg-white/5 rounded-2xl transition-all cursor-pointer group/icon">
+                                    <Video size={24} className="group-hover/icon:scale-110 transition-transform" />
                                     <input
                                         type="file"
                                         accept="video/*"
@@ -96,16 +99,18 @@ const PostInput = ({ onAddPost }) => {
                                         onChange={(e) => handleMediaChange(e, 'video')}
                                     />
                                 </label>
-                                <button type="button" className="p-2 text-slate-400 hover:text-indigo-400 hover:bg-white/5 rounded-xl transition-all">
-                                    <MapPin size={20} />
+                                <button type="button" className="p-4 text-slate-500 hover:text-indigo-400 hover:bg-white/5 rounded-2xl transition-all group/icon">
+                                    <MapPin size={24} className="group-hover/icon:scale-110 transition-transform" />
                                 </button>
                             </div>
                             <button
                                 type="submit"
                                 disabled={!content.trim() && !media}
-                                className="bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 disabled:bg-slate-700 text-white font-semibold px-6 py-2 rounded-2xl flex items-center gap-2 transition-all transform active:scale-95 shadow-lg shadow-indigo-500/25"
+                                className="btn-premium px-10 py-4 bg-indigo-600/20 text-indigo-400 hover:text-white"
                             >
-                                Share <Send size={18} />
+                                <span className="flex items-center gap-3">
+                                    Share Spark <Send size={20} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                                </span>
                             </button>
                         </div>
                     </div>
