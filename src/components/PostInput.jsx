@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Send, Image as ImageIcon, Smile, MapPin, Video, X } from 'lucide-react';
+import { Send, Image as ImageIcon, Video, X, Smile, MapPin } from 'lucide-react';
 
-const PostInput = ({ onAddPost }) => {
+const PostInput = ({ onAddPost, username }) => {
     const [content, setContent] = useState('');
     const [media, setMedia] = useState(null);
     const [mediaType, setMediaType] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
+    const [isExpanded, setIsExpanded] = useState(false);
 
     const handleMediaChange = (e, type) => {
         const file = e.target.files[0];
@@ -14,6 +15,7 @@ const PostInput = ({ onAddPost }) => {
             setMediaType(type);
             const url = URL.createObjectURL(file);
             setPreviewUrl(url);
+            setIsExpanded(true);
         }
     };
 
@@ -35,54 +37,60 @@ const PostInput = ({ onAddPost }) => {
                     onAddPost(content, reader.result, mediaType);
                     setContent('');
                     clearMedia();
+                    setIsExpanded(false);
                 };
                 reader.readAsDataURL(media);
             } else {
                 onAddPost(content, null, null);
                 setContent('');
+                setIsExpanded(false);
             }
         }
     };
 
     return (
-        <div className="max-w-4xl mx-auto mb-24 animate-reveal">
-            <form onSubmit={handleSubmit} className="glass-card-premium rounded-[3rem] p-10 border-white/10 shadow-2xl relative overflow-hidden group/form">
-                {/* Gradient Accent */}
-                <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent"></div>
-
-                <div className="flex gap-8">
-                    <div className="hidden sm:flex w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-indigo-500/10 to-purple-500/10 items-center justify-center border border-white/10 shrink-0 group-focus-within/form:scale-110 transition-transform duration-500 shadow-inner">
-                        <Smile size={32} className="text-indigo-400 group-focus-within/form:rotate-12 transition-transform" />
+        <div className="max-w-2xl mx-auto mb-4 animate-reveal border-x border-t border-white/5 bg-white/[0.01]">
+            <div className="p-6 flex gap-4">
+                {/* User Avatar */}
+                <div className="shrink-0">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/10">
+                        <span className="text-sm font-black text-white">{username?.charAt(0).toUpperCase() || "A"}</span>
                     </div>
-                    <div className="flex-1 flex flex-col gap-6">
+                </div>
+
+                {/* Input Area */}
+                <div className="flex-1 flex flex-col pt-2">
+                    <form onSubmit={handleSubmit}>
                         <textarea
                             value={content}
                             onChange={(e) => setContent(e.target.value)}
-                            placeholder="Share your creative spark..."
-                            className="bg-transparent border-none focus:ring-0 text-slate-100 placeholder:text-slate-600 resize-none py-2 text-2xl w-full h-32 custom-scrollbar font-medium"
+                            onFocus={() => setIsExpanded(true)}
+                            placeholder="What's your creative spark today?"
+                            className="w-full bg-transparent border-none focus:ring-0 text-slate-100 placeholder:text-slate-600 resize-none py-1 text-xl h-auto min-h-[48px] overflow-hidden font-medium"
+                            rows={isExpanded ? 3 : 1}
                         />
 
                         {previewUrl && (
-                            <div className="relative mt-4 rounded-3xl overflow-hidden border border-white/10 group bg-black/60 shadow-inner animate-reveal">
+                            <div className="relative mt-4 rounded-2xl overflow-hidden border border-white/10 group bg-black/40 shadow-inner max-h-96 flex items-center justify-center">
                                 {mediaType === 'image' ? (
-                                    <img src={previewUrl} alt="Preview" className="max-h-96 w-full object-contain mx-auto" />
+                                    <img src={previewUrl} alt="Preview" className="w-full h-auto object-contain max-h-96" />
                                 ) : (
-                                    <video src={previewUrl} className="max-h-96 w-full mx-auto" controls />
+                                    <video src={previewUrl} className="max-h-96 w-full" controls />
                                 )}
                                 <button
                                     type="button"
                                     onClick={clearMedia}
-                                    className="absolute top-6 right-6 p-3 bg-slate-950/80 text-white rounded-2xl opacity-0 group-hover:opacity-100 transition-all hover:bg-rose-500 hover:scale-110 shadow-2xl"
+                                    className="absolute top-4 right-4 p-2 bg-slate-950/80 text-white rounded-xl opacity-0 group-hover:opacity-100 transition-all hover:bg-rose-500 shadow-2xl"
                                 >
-                                    <X size={20} />
+                                    <X size={16} />
                                 </button>
                             </div>
                         )}
 
-                        <div className="flex items-center justify-between border-t border-white/5 pt-8 mt-2">
-                            <div className="flex gap-2">
-                                <label className="p-4 text-slate-500 hover:text-indigo-400 hover:bg-white/5 rounded-2xl transition-all cursor-pointer group/icon">
-                                    <ImageIcon size={24} className="group-hover/icon:scale-110 transition-transform" />
+                        <div className={`flex items-center justify-between border-t border-white/5 mt-4 pt-4 transition-all duration-300 ${isExpanded ? 'opacity-100' : 'opacity-0 h-0 overflow-hidden'}`}>
+                            <div className="flex gap-1">
+                                <label className="p-2 text-indigo-400 hover:bg-indigo-400/10 rounded-full transition-all cursor-pointer">
+                                    <ImageIcon size={20} />
                                     <input
                                         type="file"
                                         accept="image/*"
@@ -90,8 +98,8 @@ const PostInput = ({ onAddPost }) => {
                                         onChange={(e) => handleMediaChange(e, 'image')}
                                     />
                                 </label>
-                                <label className="p-4 text-slate-500 hover:text-indigo-400 hover:bg-white/5 rounded-2xl transition-all cursor-pointer group/icon">
-                                    <Video size={24} className="group-hover/icon:scale-110 transition-transform" />
+                                <label className="p-2 text-indigo-400 hover:bg-indigo-400/10 rounded-full transition-all cursor-pointer">
+                                    <Video size={20} />
                                     <input
                                         type="file"
                                         accept="video/*"
@@ -99,23 +107,24 @@ const PostInput = ({ onAddPost }) => {
                                         onChange={(e) => handleMediaChange(e, 'video')}
                                     />
                                 </label>
-                                <button type="button" className="p-4 text-slate-500 hover:text-indigo-400 hover:bg-white/5 rounded-2xl transition-all group/icon">
-                                    <MapPin size={24} className="group-hover/icon:scale-110 transition-transform" />
+                                <button type="button" className="p-2 text-indigo-400 hover:bg-indigo-400/10 rounded-full transition-all">
+                                    <Smile size={20} />
+                                </button>
+                                <button type="button" className="p-2 text-indigo-400 hover:bg-indigo-400/10 rounded-full transition-all">
+                                    <MapPin size={20} />
                                 </button>
                             </div>
                             <button
                                 type="submit"
                                 disabled={!content.trim() && !media}
-                                className="btn-premium px-10 py-4 bg-indigo-600/20 text-indigo-400 hover:text-white"
+                                className="px-6 py-2 bg-indigo-600 text-white rounded-full text-sm font-black uppercase tracking-widest shadow-lg shadow-indigo-600/20 hover:bg-indigo-500 transition-all disabled:opacity-50 disabled:shadow-none"
                             >
-                                <span className="flex items-center gap-3">
-                                    Share Spark <Send size={20} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                                </span>
+                                Post Spark
                             </button>
                         </div>
-                    </div>
+                    </form>
                 </div>
-            </form>
+            </div>
         </div>
     );
 };

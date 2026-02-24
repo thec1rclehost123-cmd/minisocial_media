@@ -4,28 +4,29 @@ import PostCard from './PostCard';
 const Feed = ({ posts, onLike, onDelete, onAddComment, onDeleteComment, onLikeComment, currentUsername }) => {
     if (posts.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-20 text-slate-500">
-                <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-4">
-                    <span className="text-4xl">✨</span>
+            <div className="flex flex-col items-center justify-center py-24 text-slate-500 animate-reveal">
+                <div className="w-24 h-24 rounded-full bg-white/5 flex items-center justify-center mb-8 shadow-2xl">
+                    <span className="text-5xl">✨</span>
                 </div>
-                <p className="text-lg">No posts yet. Be the first to inspire!</p>
+                <p className="text-xl font-medium tracking-tight">No sparks found. Be the one to start the fire.</p>
             </div>
         );
     }
 
     return (
-        <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 max-w-7xl mx-auto px-4">
+        <div className="w-full max-w-2xl mx-auto flex flex-col gap-0 border-x border-white/5 bg-white/[0.01]">
             {posts.map((post) => (
-                <PostCard
-                    key={post.id}
-                    post={post}
-                    onLike={onLike}
-                    onDelete={onDelete}
-                    onAddComment={onAddComment}
-                    onDeleteComment={onDeleteComment}
-                    onLikeComment={onLikeComment}
-                    currentUsername={currentUsername}
-                />
+                <div key={post.id} className="border-b border-white/5">
+                    <PostCard
+                        post={post}
+                        onLike={onLike}
+                        onDelete={onDelete}
+                        onAddComment={onAddComment}
+                        onDeleteComment={onDeleteComment}
+                        onLikeComment={onLikeComment}
+                        currentUsername={currentUsername}
+                    />
+                </div>
             ))}
         </div>
     );

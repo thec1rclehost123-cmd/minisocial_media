@@ -45,6 +45,10 @@ body {
   .glass {
     @apply bg-white/[0.03] backdrop-blur-3xl border border-white/10 shadow-2xl;
   }
+
+  .no-transition {
+    transition: none !important;
+  }
 }
 
 /* 3D Stack Animation */

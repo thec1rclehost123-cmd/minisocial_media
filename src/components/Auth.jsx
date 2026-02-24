@@ -32,13 +32,8 @@ const Auth = ({ onAuthSuccess }) => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-6 bg-[#020617] relative overflow-hidden selection:bg-indigo-500/30">
-            {/* Dynamic Background Blobs */}
-            <div className="absolute top-0 left-0 w-full h-full">
-                <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-indigo-600/10 blur-[150px] rounded-full animate-pulse-soft"></div>
-                <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-purple-600/10 blur-[150px] rounded-full animate-float delay-1000"></div>
-                <div className="absolute top-[30%] right-[10%] w-[20%] h-[20%] bg-blue-500/5 blur-[100px] rounded-full animate-pulse-soft"></div>
-            </div>
+        <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden selection:bg-indigo-500/30">
+            {/* The global InteractiveBackground will show through here */}
 
             {/* Auth Card */}
             <div className="relative z-10 w-full max-w-md animate-reveal">
@@ -147,7 +142,6 @@ const Auth = ({ onAuthSuccess }) => {
                 </div>
             </div>
         </div>
-
     );
 };
 
