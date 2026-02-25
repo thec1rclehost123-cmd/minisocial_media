@@ -211,18 +211,33 @@ export const fetchSuggestedCreators = async (currentUserId) => {
     if (!supabase) return [];
 
     try {
-        const { data, error } = await supabase
+        const { data: creators, error } = await supabase
             .from('profiles')
             .select('*')
             .neq('id', currentUserId || '00000000-0000-0000-0000-000000000000')
             .limit(5);
 
         if (error) throw error;
-        return data.map(p => ({
+
+        // If logged in, check which creators are already followed
+        let followedIds = new Set();
+        if (currentUserId) {
+            const { data: follows } = await supabase
+                .from('follows')
+                .select('following_id')
+                .eq('follower_id', currentUserId);
+
+            if (follows) {
+                followedIds = new Set(follows.map(f => f.following_id));
+            }
+        }
+
+        return creators.map(p => ({
             id: p.id,
             name: p.username,
             role: p.role || 'Explorer',
-            initial: (p.username || 'A').charAt(0).toUpperCase()
+            initial: (p.username || 'A').charAt(0).toUpperCase(),
+            isFollowing: followedIds.has(p.id)
         }));
     } catch (error) {
         console.error('Error fetching suggested creators:', error);

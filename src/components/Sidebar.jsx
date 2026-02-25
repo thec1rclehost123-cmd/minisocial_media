@@ -55,9 +55,12 @@ const Sidebar = ({ username, trendingTags = [], suggestedCreators = [], userStat
                             </div>
                             <button
                                 onClick={() => onFollow(creator.id)}
-                                className="px-5 py-2 rounded-xl bg-white text-slate-950 text-[10px] font-black uppercase tracking-widest hover:bg-indigo-400 hover:text-white transition-all active:scale-95 shadow-2xl"
+                                className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-2xl ${creator.isFollowing
+                                        ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 hover:bg-indigo-500/20'
+                                        : 'bg-white text-slate-950 hover:bg-indigo-400 hover:text-white'
+                                    }`}
                             >
-                                Follow
+                                {creator.isFollowing ? 'Following' : 'Follow'}
                             </button>
                         </div>
                     )) : (
