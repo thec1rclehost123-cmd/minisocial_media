@@ -76,19 +76,16 @@ const EditIdentityModal = ({ isOpen, onClose, initialData, onSave, isSaving }) =
         setLocalSaving(true);
 
         try {
-            const sensitiveChange = (formData.newPassword && formData.newPassword.trim() !== '') || (formData.newEmail !== formData.currEmail);
+            // Mandatory re-authentication for any change as per secure flow requirement
+            const { error: signInError } = await supabase.auth.signInWithPassword({
+                email: formData.currEmail,
+                password: formData.currPassword,
+            });
 
-            if (sensitiveChange) {
-                const { error: signInError } = await supabase.auth.signInWithPassword({
-                    email: formData.currEmail,
-                    password: formData.currPassword,
-                });
-
-                if (signInError) {
-                    setToast({ type: 'error', message: 'Current password verification failed' });
-                    setLocalSaving(false);
-                    return;
-                }
+            if (signInError) {
+                setToast({ type: 'error', message: 'Current password verification failed' });
+                setLocalSaving(false);
+                return;
             }
 
             if (formData.newPassword && formData.newPassword.trim() !== '') {

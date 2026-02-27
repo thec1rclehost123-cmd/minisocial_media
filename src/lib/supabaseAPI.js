@@ -204,7 +204,7 @@ export async function getNotifications(userId) {
       post_id,
       actor:actor_id (id, username, avatar_url)
     `)
-        .eq('user_id', userId)
+        .eq('recipient_id', userId)
         .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -215,7 +215,7 @@ export async function markNotificationsRead(userId) {
     const { error } = await supabase
         .from('notifications')
         .update({ is_read: true })
-        .eq('user_id', userId)
+        .eq('recipient_id', userId)
         .eq('is_read', false);
 
     if (error) throw error;
@@ -239,12 +239,12 @@ export function subscribeToFeedUpdates(onInsert, onDelete) {
 }
 
 export function subscribeToNotifications(userId, onNotification) {
-    return supabase.channel(`public:notifications:user_id=eq.${userId}`)
+    return supabase.channel(`public:notifications:recipient_id=eq.${userId}`)
         .on('postgres_changes', {
             event: 'INSERT',
             schema: 'public',
             table: 'notifications',
-            filter: `user_id=eq.${userId}`
+            filter: `recipient_id=eq.${userId}`
         }, payload => {
             onNotification(payload.new);
         })
