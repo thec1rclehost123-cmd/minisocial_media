@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
-import { Settings, Grid, Heart, MessageSquare, Bookmark, ShieldCheck, MapPin, Link as LinkIcon } from 'lucide-react';
+import { Settings, Grid, Heart, Bookmark, MapPin, Link as LinkIcon } from 'lucide-react';
 import Feed from './Feed';
-import ProfileCard from './ProfileCard';
+import EditIdentityModal from './EditIdentityModal';
+import { supabase } from '../lib/supabase';
 
-const ProfileView = ({ posts, username, stats, onLike, onDelete, onAddComment, onDeleteComment, onLikeComment }) => {
+const ProfileView = ({ posts, username, userId, stats, onLike, onDelete, onAddComment, onDeleteComment, session, onUsernameChange, likedPostIds = [] }) => {
     const [activeTab, setActiveTab] = useState('sparks');
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
 
     // Filter posts for this user
-    const userPosts = posts.filter(post => post.username === username);
+    const userPosts = posts.filter(post => post.user_id === userId);
 
     const tabs = [
         { id: 'sparks', label: 'Sparks', icon: <Grid size={18} />, count: userPosts.length },
@@ -15,11 +18,30 @@ const ProfileView = ({ posts, username, stats, onLike, onDelete, onAddComment, o
         { id: 'inspired', label: 'Inspired', icon: <Heart size={18} />, count: 0 }
     ];
 
+    const handleSaveProfile = async (profileData) => {
+        if (!session) return false;
+        setIsSaving(true);
+        try {
+            const { error } = await supabase
+                .from('profiles')
+                .update({ username: profileData.username })
+                .eq('id', session.user.id);
+            if (error) throw error;
+            onUsernameChange(profileData.username);
+            return true;
+        } catch (err) {
+            console.error('Profile update error:', err);
+            return false;
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
     return (
         <div className="max-w-6xl mx-auto animate-reveal">
-            {/* Profile Header Header */}
+            {/* Profile Header */}
             <div className="relative mb-20">
-                {/* Visual Cover (Abstract Gradient) */}
+                {/* Visual Cover */}
                 <div className="h-64 rounded-[3rem] bg-gradient-to-br from-indigo-900/40 via-purple-900/20 to-slate-900/40 border border-white/5 relative overflow-hidden">
                     <div className="absolute inset-0 opacity-20 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
                     <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-indigo-500/10 blur-[100px] rounded-full"></div>
@@ -39,7 +61,10 @@ const ProfileView = ({ posts, username, stats, onLike, onDelete, onAddComment, o
                         <div className="flex flex-col sm:flex-row sm:items-center gap-6 mb-6">
                             <h2 className="text-5xl font-black text-white tracking-tighter">{username || 'Visionary'}</h2>
                             <div className="flex gap-3">
-                                <button className="px-6 py-2.5 bg-white text-slate-950 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all shadow-xl active:scale-95">
+                                <button
+                                    onClick={() => setShowEditModal(true)}
+                                    className="px-6 py-2.5 bg-white text-slate-950 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all shadow-xl active:scale-95"
+                                >
                                     Edit Profile
                                 </button>
                                 <button className="p-2.5 bg-white/5 border border-white/10 text-white rounded-2xl hover:bg-white/10 transition-all">
@@ -126,8 +151,9 @@ const ProfileView = ({ posts, username, stats, onLike, onDelete, onAddComment, o
                                 onDelete={onDelete}
                                 onAddComment={onAddComment}
                                 onDeleteComment={onDeleteComment}
-                                onLikeComment={onLikeComment}
                                 currentUsername={username}
+                                currentUserId={userId}
+                                likedPostIds={likedPostIds}
                             />
                             {userPosts.length === 0 && (
                                 <div className="py-32 text-center glass-card-premium rounded-[3rem] border-dashed border-white/5">
@@ -144,6 +170,18 @@ const ProfileView = ({ posts, username, stats, onLike, onDelete, onAddComment, o
                     )}
                 </div>
             </div>
+
+            {/* Edit Identity Modal */}
+            <EditIdentityModal
+                isOpen={showEditModal}
+                onClose={() => setShowEditModal(false)}
+                initialData={{
+                    username: username,
+                    email: session?.user?.email || '',
+                }}
+                onSave={handleSaveProfile}
+                isSaving={isSaving}
+            />
         </div>
     );
 };

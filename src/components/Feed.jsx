@@ -1,7 +1,7 @@
 import React from 'react';
 import PostCard from './PostCard';
 
-const Feed = ({ posts, onLike, onDelete, onAddComment, onDeleteComment, onLikeComment, currentUsername }) => {
+const Feed = ({ posts, onLike, onDelete, onAddComment, onDeleteComment, currentUsername, currentUserId, likedPostIds = [] }) => {
     if (posts.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-24 text-slate-500 animate-reveal">
@@ -23,8 +23,9 @@ const Feed = ({ posts, onLike, onDelete, onAddComment, onDeleteComment, onLikeCo
                         onDelete={onDelete}
                         onAddComment={onAddComment}
                         onDeleteComment={onDeleteComment}
-                        onLikeComment={onLikeComment}
                         currentUsername={currentUsername}
+                        currentUserId={currentUserId}
+                        isLiked={likedPostIds.includes(post.id)}
                     />
                 </div>
             ))}
