@@ -35,28 +35,28 @@ const NotificationsModal = ({ isOpen, onClose, notifications, onMarkAsRead, curr
                 onClick={onClose}
             ></div>
 
-            <div className="relative w-full max-w-md bg-[#0a0c10]/80 border border-white/10 rounded-[2.5rem] p-8 shadow-2xl backdrop-blur-xl animate-modal-in overflow-hidden">
+            <div className="relative w-full max-w-md bg-[#0a0c10]/80 border border-white/10 rounded-[1.5rem] sm:rounded-[2.5rem] p-5 sm:p-8 shadow-2xl backdrop-blur-xl animate-modal-in overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-500"></div>
 
-                <div className="flex justify-between items-center mb-8">
-                    <div className="flex items-center gap-3">
-                        <div className="p-3 bg-purple-500/10 rounded-2xl border border-purple-500/20">
-                            <Bell size={20} className="text-purple-400" />
+                <div className="flex justify-between items-center mb-6 sm:mb-8">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="p-2 sm:p-3 bg-purple-500/10 rounded-xl sm:rounded-2xl border border-purple-500/20">
+                            <Bell size={18} className="text-purple-400 sm:w-[20px] sm:h-[20px]" />
                         </div>
                         <div>
-                            <h2 className="text-2xl font-black text-white tracking-tight">Updates</h2>
-                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">Centralized Intelligence</p>
+                            <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">Updates</h2>
+                            <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] text-slate-500 italic">Centralized Intelligence</p>
                         </div>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all text-slate-400 hover:text-white"
+                        className="p-2 sm:p-3 bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl hover:bg-white/10 transition-all text-slate-400 hover:text-white"
                     >
-                        <X size={20} />
+                        <X size={18} className="sm:w-[20px] sm:h-[20px]" />
                     </button>
                 </div>
 
-                <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                <div className="space-y-3 sm:space-y-4 max-h-[60vh] overflow-y-auto pr-1 sm:pr-2 custom-scrollbar">
                     {localNotifications.length === 0 ? (
                         <div className="py-12 text-center">
                             <div className="inline-flex p-4 bg-white/5 rounded-full mb-4">
@@ -73,38 +73,38 @@ const NotificationsModal = ({ isOpen, onClose, notifications, onMarkAsRead, curr
                             return (
                                 <div
                                     key={notification.id}
-                                    className={`relative group p-5 rounded-3xl border transition-all ${notification.is_read ? 'bg-white/[0.02] border-white/5' : 'bg-white/[0.05] border-purple-500/20 shadow-[0_0_20px_rgba(168,85,247,0.05)]'
+                                    className={`relative group p-3 sm:p-5 rounded-2xl sm:rounded-3xl border transition-all ${notification.is_read ? 'bg-white/[0.02] border-white/5' : 'bg-white/[0.05] border-purple-500/20 shadow-[0_0_20px_rgba(168,85,247,0.05)]'
                                         } hover:border-white/20`}
                                 >
-                                    <div className="flex items-start gap-4">
-                                        <div className="relative">
+                                    <div className="flex items-start gap-3 sm:gap-4">
+                                        <div className="relative shrink-0">
                                             <img
                                                 src={notification.actor?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${notification.actor?.username}`}
                                                 alt={notification.actor?.username}
-                                                className="w-12 h-12 rounded-2xl object-cover ring-2 ring-white/5"
+                                                className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl object-cover ring-2 ring-white/5"
                                             />
-                                            <div className="absolute -bottom-1 -right-1 p-1.5 rounded-lg bg-slate-900 border border-white/10">
-                                                {notification.type === 'like' && <Heart size={10} className="text-rose-500 fill-rose-500" />}
-                                                {notification.type === 'comment' && <MessageSquare size={10} className="text-blue-400" />}
-                                                {notification.type === 'follow' && <UserPlus size={10} className="text-purple-400" />}
+                                            <div className="absolute -bottom-1 -right-1 p-1 rounded-lg bg-slate-900 border border-white/10">
+                                                {notification.type === 'like' && <Heart size={8} className="text-rose-500 fill-rose-500 sm:w-[10px] sm:h-[10px]" />}
+                                                {notification.type === 'comment' && <MessageSquare size={8} className="text-blue-400 sm:w-[10px] sm:h-[10px]" />}
+                                                {notification.type === 'follow' && <UserPlus size={8} className="text-purple-400 sm:w-[10px] sm:h-[10px]" />}
                                             </div>
                                         </div>
 
                                         <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <span className="font-black text-white text-sm tracking-tight truncate">
+                                            <div className="flex items-center gap-1.5 sm:gap-2 mb-0.5 sm:mb-1">
+                                                <span className="font-black text-white text-xs sm:text-sm tracking-tight truncate">
                                                     {notification.actor?.username}
                                                 </span>
                                                 {!notification.is_read && (
                                                     <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse"></span>
                                                 )}
                                             </div>
-                                            <p className="text-slate-400 text-xs font-bold leading-relaxed mb-2">
+                                            <p className="text-slate-400 text-[10px] sm:text-xs font-bold leading-relaxed mb-1.5 sm:mb-2">
                                                 {notification.type === 'like' && 'reconfigured appreciation for your transmission.'}
                                                 {notification.type === 'comment' && 'encoded a response to your data entry.'}
                                                 {notification.type === 'follow' && 'established a neural connection with your profile.'}
                                             </p>
-                                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-600">
+                                            <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-slate-600">
                                                 {formatTimeAgo(notification.created_at)}
                                             </span>
                                         </div>
@@ -113,17 +113,17 @@ const NotificationsModal = ({ isOpen, onClose, notifications, onMarkAsRead, curr
                                             <button
                                                 onClick={() => onFollow(actorId)}
                                                 disabled={isLoading}
-                                                className={`btn-follow shrink-0 ${isFollowing
+                                                className={`px-3 py-1.5 rounded-lg text-[8px] sm:text-[10px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95 shrink-0 ${isFollowing
                                                     ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 hover:bg-rose-500/10 hover:text-rose-400 hover:border-rose-500/20'
                                                     : 'bg-purple-500 text-white hover:bg-purple-400'
                                                     } ${isLoading ? 'opacity-60 cursor-not-allowed' : ''}`}
                                             >
                                                 {isLoading ? (
-                                                    <Loader2 size={14} className="animate-spin" />
+                                                    <Loader2 size={12} className="animate-spin" />
                                                 ) : isFollowing ? (
                                                     'Following'
                                                 ) : (
-                                                    'Follow Back'
+                                                    'Follow'
                                                 )}
                                             </button>
                                         )}
