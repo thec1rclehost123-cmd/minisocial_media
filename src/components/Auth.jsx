@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { supabase } from '../utils/supabase';
+﻿import React, { useState } from 'react';
+import { supabase } from '../lib/supabase';
 import { LogIn, UserPlus, Mail, Lock, Github, Chrome, ArrowRight, Loader2 } from 'lucide-react';
 
 const Auth = ({ onAuthSuccess }) => {
@@ -33,8 +33,6 @@ const Auth = ({ onAuthSuccess }) => {
 
     return (
         <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden selection:bg-indigo-500/30">
-            {/* The global InteractiveBackground will show through here */}
-
             {/* Auth Card */}
             <div className="relative z-10 w-full max-w-md animate-reveal">
                 <div className="glass rounded-[2.5rem] p-10 border-white/10 shadow-2xl backdrop-blur-3xl relative overflow-hidden group">

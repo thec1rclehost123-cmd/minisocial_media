@@ -3,29 +3,30 @@ import { Search } from 'lucide-react';
 
 import Navbar from './components/Navbar';
 import PostInput from './components/PostInput';
+import UsernameInput from './components/UsernameInput';
 import Feed from './components/Feed';
 import Auth from './components/Auth';
 import Sidebar from './components/Sidebar';
 import ProfileView from './components/ProfileView';
 import InteractiveBackground from './components/InteractiveBackground';
+import { supabase } from './lib/supabase';
 import {
-    fetchSupabasePosts,
-    insertSupabasePost,
-    toggleSupabasePostLike,
-    insertSupabaseComment,
-    toggleSupabaseCommentLike,
-    deleteSupabasePost,
-    deleteSupabaseComment,
-    fetchTrendingTags,
-    fetchSuggestedCreators,
-    fetchUserStats,
-    toggleSupabaseFollow
-} from './utils/supabaseStorage';
-import { supabase } from './utils/supabase';
+    getFeedPosts,
+    createPost,
+    toggleLike,
+    addComment,
+    toggleFollow,
+    getSuggestedUsers,
+    getNotifications,
+    getUserLikedPostIds,
+    subscribeToFeedUpdates,
+    subscribeToNotifications,
+} from './lib/supabaseAPI';
 
 function App() {
     const [posts, setPosts] = useState([]);
     const [username, setUsername] = useState('');
+    const [userId, setUserId] = useState(null);
     const [session, setSession] = useState(null);
     const [authLoading, setAuthLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -36,45 +37,89 @@ function App() {
     const [trendingTags, setTrendingTags] = useState([]);
     const [suggestedCreators, setSuggestedCreators] = useState([]);
     const [userStats, setUserStats] = useState({ followers: '0', following: '0', posts: '0' });
+    const [likedPostIds, setLikedPostIds] = useState([]);
 
     /**
-     * Load all data from Supabase. No localStorage fallback — purely cloud.
+     * Fetch all data from Supabase. Called on mount & after auth changes.
      */
     const loadContent = useCallback(async (currentSession) => {
-        // Fetch all community posts from Supabase
-        const allPosts = await fetchSupabasePosts();
-        setPosts(allPosts);
-
-        // Sidebar data
-        const tags = await fetchTrendingTags();
-        setTrendingTags(tags);
-
-        // User-specific data
         const activeSession = currentSession || session;
-        if (activeSession) {
-            const userId = activeSession.user.id;
+        if (!activeSession) return;
 
-            const [suggested, stats] = await Promise.all([
-                fetchSuggestedCreators(userId),
-                fetchUserStats(userId)
-            ]);
-            setSuggestedCreators(suggested);
-            setUserStats(stats);
+        const uid = activeSession.user.id;
 
-            // Get username from Supabase profile (single source of truth)
+        // Fetch feed posts (all users)
+        try {
+            const feedPosts = await getFeedPosts();
+            setPosts(feedPosts || []);
+        } catch (err) {
+            console.error('Feed fetch error:', err);
+        }
+
+        // Fetch user's liked post IDs
+        try {
+            const likedIds = await getUserLikedPostIds(uid);
+            setLikedPostIds(likedIds || []);
+        } catch (err) {
+            console.error('Liked posts fetch error:', err);
+        }
+
+        // Fetch user profile
+        try {
             const { data: profile } = await supabase
                 .from('profiles')
                 .select('username')
-                .eq('id', userId)
+                .eq('id', uid)
                 .maybeSingle();
-
             if (profile?.username) {
                 setUsername(profile.username);
-            } else {
-                // Profile exists but no username — use email prefix
-                const emailPrefix = activeSession.user.email?.split('@')[0] || 'User';
-                setUsername(emailPrefix);
             }
+        } catch (err) {
+            console.error('Profile fetch error:', err);
+        }
+
+        // Fetch trending tags from posts content
+        try {
+            const { data: allPosts } = await supabase.from('posts').select('content');
+            const tagMap = {};
+            (allPosts || []).forEach(p => {
+                const matches = p.content?.match(/#(\w+)/g) || [];
+                matches.forEach(tag => {
+                    const clean = tag.slice(1).toLowerCase();
+                    tagMap[clean] = (tagMap[clean] || 0) + 1;
+                });
+            });
+            const sorted = Object.entries(tagMap)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5)
+                .map(([tag, posts]) => ({ tag, posts }));
+            setTrendingTags(sorted);
+        } catch (err) {
+            console.error('Trending tags error:', err);
+        }
+
+        // Fetch suggested users and stats
+        try {
+            const suggested = await getSuggestedUsers(uid);
+            setSuggestedCreators(suggested || []);
+        } catch (err) {
+            console.error('Suggested users error:', err);
+        }
+
+        try {
+            const { count: postCount } = await supabase
+                .from('posts').select('*', { count: 'exact', head: true }).eq('user_id', uid);
+            const { count: followerCount } = await supabase
+                .from('follows').select('*', { count: 'exact', head: true }).eq('following_id', uid);
+            const { count: followingCount } = await supabase
+                .from('follows').select('*', { count: 'exact', head: true }).eq('follower_id', uid);
+            setUserStats({
+                posts: String(postCount || 0),
+                followers: String(followerCount || 0),
+                following: String(followingCount || 0),
+            });
+        } catch (err) {
+            console.error('User stats error:', err);
         }
     }, [session]);
 
@@ -87,18 +132,27 @@ function App() {
             if (!isMounted) return;
 
             setSession(initialSession);
-            await loadContent(initialSession);
-
+            if (initialSession) {
+                setUserId(initialSession.user.id);
+                await loadContent(initialSession);
+            }
             if (isMounted) setAuthLoading(false);
         };
 
         init();
 
-        // Listen for auth state changes
+        // Auth Listener
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
             if (!isMounted) return;
             setSession(newSession);
-            if (newSession) loadContent(newSession);
+            if (newSession) {
+                setUserId(newSession.user.id);
+                loadContent(newSession);
+            } else {
+                setUserId(null);
+                setUsername('');
+                setPosts([]);
+            }
         });
 
         return () => {
@@ -107,7 +161,32 @@ function App() {
         };
     }, []);
 
-    // Filtered posts for search and tag filtering
+    // Realtime subscription for posts
+    useEffect(() => {
+        if (!session) return;
+
+        const channel = subscribeToFeedUpdates(
+            async () => {
+                // On any INSERT, refetch entire feed to get full joined data
+                try {
+                    const feedPosts = await getFeedPosts();
+                    setPosts(feedPosts || []);
+                } catch (err) { console.error(err); }
+            },
+            async () => {
+                // On DELETE, also refetch
+                try {
+                    const feedPosts = await getFeedPosts();
+                    setPosts(feedPosts || []);
+                } catch (err) { console.error(err); }
+            }
+        );
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [session]);
+
     const filteredPosts = useMemo(() => {
         let result = posts;
         if (selectedTag) {
@@ -117,84 +196,140 @@ function App() {
             const query = searchQuery.toLowerCase();
             result = result.filter(post =>
                 (post.content?.toLowerCase().includes(query)) ||
-                (post.username?.toLowerCase().includes(query))
+                (post.profiles?.username?.toLowerCase().includes(query))
             );
         }
         return result;
     }, [posts, searchQuery, selectedTag]);
 
-    // --- Handlers (all Supabase, no localStorage) ---
-
     const handleSaveUsername = async (name) => {
-        setUsername(name);
-        if (session) {
-            await supabase.from('profiles').update({ username: name }).eq('id', session.user.id);
+        if (!userId) return;
+        try {
+            // Upsert the profile with the chosen username
+            const { error } = await supabase.from('profiles').upsert({
+                id: userId,
+                username: name,
+            }, { onConflict: 'id' });
+            if (error) throw error;
+            setUsername(name);
+        } catch (err) {
+            console.error('Save username error:', err);
+            alert('Username might already be taken. Try another one.');
         }
     };
 
-    const handleAddPost = async (content, media, mediaType) => {
-        const result = await insertSupabasePost(content, username, media, mediaType);
-        if (result) {
-            setPosts(prev => [result, ...prev]);
-            // Refresh sidebar data
-            const tags = await fetchTrendingTags();
-            setTrendingTags(tags);
-            if (session) {
-                const stats = await fetchUserStats(session.user.id);
-                setUserStats(stats);
-            }
+    const handleAddPost = async (content, imageUrl) => {
+        if (!userId) return;
+        try {
+            await createPost(userId, content, imageUrl);
+            // Realtime subscription will refetch feed automatically
+            // But also update stats
+            const { count } = await supabase
+                .from('posts').select('*', { count: 'exact', head: true }).eq('user_id', userId);
+            setUserStats(prev => ({ ...prev, posts: String(count || 0) }));
+            // Re-compute trending tags
+            const { data: allPosts } = await supabase.from('posts').select('content');
+            const tagMap = {};
+            (allPosts || []).forEach(p => {
+                const matches = p.content?.match(/#(\w+)/g) || [];
+                matches.forEach(tag => {
+                    const clean = tag.slice(1).toLowerCase();
+                    tagMap[clean] = (tagMap[clean] || 0) + 1;
+                });
+            });
+            const sorted = Object.entries(tagMap)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5)
+                .map(([tag, posts]) => ({ tag, posts }));
+            setTrendingTags(sorted);
+        } catch (err) {
+            console.error('Add post error:', err);
         }
     };
 
     const handleDeletePost = async (id) => {
-        const result = await deleteSupabasePost(id);
-        if (result) {
+        if (!userId) return;
+        try {
+            const { error } = await supabase.from('posts').delete().eq('id', id).eq('user_id', userId);
+            if (error) throw error;
+            // Optimistically remove from state, realtime will confirm
             setPosts(prev => prev.filter(p => p.id !== id));
-            if (session) {
-                const stats = await fetchUserStats(session.user.id);
-                setUserStats(stats);
-            }
+            const { count } = await supabase
+                .from('posts').select('*', { count: 'exact', head: true }).eq('user_id', userId);
+            setUserStats(prev => ({ ...prev, posts: String(count || 0) }));
+        } catch (err) {
+            console.error('Delete post error:', err);
         }
     };
 
-    const handleLikePost = async (id) => {
-        await toggleSupabasePostLike(id, username);
-        const updatedPosts = await fetchSupabasePosts();
-        setPosts(updatedPosts);
+    const handleLikePost = async (postId) => {
+        if (!userId) return;
+        try {
+            // Optimistically toggle locally
+            setLikedPostIds(prev =>
+                prev.includes(postId) ? prev.filter(id => id !== postId) : [...prev, postId]
+            );
+            await toggleLike(userId, postId);
+            // Refetch feed to get updated like counts
+            const feedPosts = await getFeedPosts();
+            setPosts(feedPosts || []);
+        } catch (err) {
+            console.error('Like error:', err);
+            // Revert on failure
+            const likedIds = await getUserLikedPostIds(userId);
+            setLikedPostIds(likedIds || []);
+        }
     };
 
     const handleFollowCreator = async (creatorId) => {
-        if (!session) return;
-        await toggleSupabaseFollow(session.user.id, creatorId);
-        const [stats, suggested] = await Promise.all([
-            fetchUserStats(session.user.id),
-            fetchSuggestedCreators(session.user.id)
-        ]);
-        setUserStats(stats);
-        setSuggestedCreators(suggested);
+        if (!userId) return;
+        try {
+            await toggleFollow(userId, creatorId);
+            // Refetch suggestions and stats
+            const suggested = await getSuggestedUsers(userId);
+            setSuggestedCreators(suggested || []);
+            const { count: followerCount } = await supabase
+                .from('follows').select('*', { count: 'exact', head: true }).eq('following_id', userId);
+            const { count: followingCount } = await supabase
+                .from('follows').select('*', { count: 'exact', head: true }).eq('follower_id', userId);
+            setUserStats(prev => ({
+                ...prev,
+                followers: String(followerCount || 0),
+                following: String(followingCount || 0),
+            }));
+        } catch (err) {
+            console.error('Follow error:', err);
+        }
     };
 
     const handleAddComment = async (postId, content) => {
-        await insertSupabaseComment(postId, content, username);
-        const updatedPosts = await fetchSupabasePosts();
-        setPosts(updatedPosts);
+        if (!userId) return;
+        try {
+            await addComment(userId, postId, content);
+            // Refetch feed to get updated comment data
+            const feedPosts = await getFeedPosts();
+            setPosts(feedPosts || []);
+        } catch (err) {
+            console.error('Comment error:', err);
+        }
     };
 
     const handleDeleteComment = async (postId, commentId) => {
-        await deleteSupabaseComment(commentId);
-        const updatedPosts = await fetchSupabasePosts();
-        setPosts(updatedPosts);
-    };
-
-    const handleLikeComment = async (postId, commentId) => {
-        await toggleSupabaseCommentLike(commentId, username);
-        const updatedPosts = await fetchSupabasePosts();
-        setPosts(updatedPosts);
+        if (!userId) return;
+        try {
+            const { error } = await supabase.from('comments').delete().eq('id', commentId).eq('user_id', userId);
+            if (error) throw error;
+            const feedPosts = await getFeedPosts();
+            setPosts(feedPosts || []);
+        } catch (err) {
+            console.error('Delete comment error:', err);
+        }
     };
 
     const handleSignOut = async () => {
         await supabase.auth.signOut();
         setSession(null);
+        setUserId(null);
         setUsername('');
         setCurrentView('home');
         setPosts([]);
@@ -236,8 +371,10 @@ function App() {
                                             <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em]">Curated Sparks Everywhere</p>
                                         </div>
 
-                                        {username && (
+                                        {username ? (
                                             <PostInput onAddPost={handleAddPost} username={username} />
+                                        ) : (
+                                            <UsernameInput onSave={handleSaveUsername} />
                                         )}
 
                                         <Feed
@@ -246,11 +383,12 @@ function App() {
                                             onDelete={handleDeletePost}
                                             onAddComment={handleAddComment}
                                             onDeleteComment={handleDeleteComment}
-                                            onLikeComment={handleLikeComment}
                                             currentUsername={username}
+                                            currentUserId={userId}
+                                            likedPostIds={likedPostIds}
                                         />
 
-                                        {filteredPosts.length === 0 && posts.length > 0 && (
+                                        {filteredPosts.length === 0 && (
                                             <div className="py-24 text-center border-x border-b border-white/5 bg-white/[0.01]">
                                                 <Search size={48} className="mx-auto text-slate-800 mb-6" />
                                                 <h4 className="text-2xl font-black text-slate-500">No matching sparks</h4>
@@ -278,12 +416,15 @@ function App() {
                             <ProfileView
                                 posts={posts}
                                 username={username}
+                                userId={userId}
                                 stats={userStats}
                                 onLike={handleLikePost}
                                 onDelete={handleDeletePost}
                                 onAddComment={handleAddComment}
                                 onDeleteComment={handleDeleteComment}
-                                onLikeComment={handleLikeComment}
+                                session={session}
+                                onUsernameChange={(newName) => setUsername(newName)}
+                                likedPostIds={likedPostIds}
                             />
                         )}
                     </main>

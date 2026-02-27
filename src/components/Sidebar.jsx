@@ -43,14 +43,14 @@ const Sidebar = ({ username, trendingTags = [], suggestedCreators = [], userStat
                 </div>
                 <div className="space-y-8">
                     {suggestedCreators.length > 0 ? suggestedCreators.map((creator, i) => (
-                        <div key={i} className="flex items-center justify-between">
+                        <div key={creator.id || i} className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
                                 <div className="w-12 h-12 rounded-2xl bg-white/[0.03] border border-white/5 flex items-center justify-center font-black text-indigo-400 shadow-inner">
-                                    {creator.initial}
+                                    {creator.username?.charAt(0).toUpperCase() || '?'}
                                 </div>
                                 <div className="min-w-0">
-                                    <p className="text-sm font-black text-white leading-none mb-1.5 truncate">{creator.name}</p>
-                                    <p className="text-[10px] text-slate-600 uppercase tracking-widest font-black leading-none truncate">{creator.role}</p>
+                                    <p className="text-sm font-black text-white leading-none mb-1.5 truncate">{creator.username || 'Unknown'}</p>
+                                    <p className="text-[10px] text-slate-600 uppercase tracking-widest font-black leading-none truncate">{creator.bio || 'Creator'}</p>
                                 </div>
                             </div>
                             <button
