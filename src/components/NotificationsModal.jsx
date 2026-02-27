@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { X, Bell, UserPlus, Heart, MessageSquare, Loader2 } from 'lucide-react';
-import { toggleFollow } from '../lib/supabaseAPI';
 
 // Simple native implementation of "time ago" to avoid extra dependencies
 const formatTimeAgo = (date) => {
@@ -17,7 +16,7 @@ const formatTimeAgo = (date) => {
     return new Date(date).toLocaleDateString();
 };
 
-const NotificationsModal = ({ isOpen, onClose, notifications, onMarkAsRead, currentUserId, onFollowUpdate }) => {
+const NotificationsModal = ({ isOpen, onClose, notifications, onMarkAsRead, currentUserId, onFollow, followingIds = [], followLoadingIds = new Set() }) => {
     const [localNotifications, setLocalNotifications] = useState(notifications);
 
     useEffect(() => {
@@ -26,15 +25,6 @@ const NotificationsModal = ({ isOpen, onClose, notifications, onMarkAsRead, curr
             onMarkAsRead();
         }
     }, [notifications, isOpen, onMarkAsRead]);
-
-    const handleFollowBack = async (actorId) => {
-        try {
-            await toggleFollow(currentUserId, actorId);
-            onFollowUpdate(actorId, true);
-        } catch (error) {
-            console.error('Error following back:', error);
-        }
-    };
 
     if (!isOpen) return null;
 
@@ -75,56 +65,72 @@ const NotificationsModal = ({ isOpen, onClose, notifications, onMarkAsRead, curr
                             <p className="text-slate-500 font-bold text-sm tracking-tight">No transmissions received yet.</p>
                         </div>
                     ) : (
-                        localNotifications.map((notification) => (
-                            <div
-                                key={notification.id}
-                                className={`relative group p-5 rounded-3xl border transition-all ${notification.is_read ? 'bg-white/[0.02] border-white/5' : 'bg-white/[0.05] border-purple-500/20 shadow-[0_0_20px_rgba(168,85,247,0.05)]'
-                                    } hover:border-white/20`}
-                            >
-                                <div className="flex items-start gap-4">
-                                    <div className="relative">
-                                        <img
-                                            src={notification.actor?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${notification.actor?.username}`}
-                                            alt={notification.actor?.username}
-                                            className="w-12 h-12 rounded-2xl object-cover ring-2 ring-white/5"
-                                        />
-                                        <div className="absolute -bottom-1 -right-1 p-1.5 rounded-lg bg-slate-900 border border-white/10">
-                                            {notification.type === 'like' && <Heart size={10} className="text-rose-500 fill-rose-500" />}
-                                            {notification.type === 'comment' && <MessageSquare size={10} className="text-blue-400" />}
-                                            {notification.type === 'follow' && <UserPlus size={10} className="text-purple-400" />}
-                                        </div>
-                                    </div>
+                        localNotifications.map((notification) => {
+                            const actorId = notification.actor?.id;
+                            const isFollowing = actorId ? followingIds.includes(actorId) : false;
+                            const isLoading = actorId ? followLoadingIds.has(actorId) : false;
 
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <span className="font-black text-white text-sm tracking-tight truncate">
-                                                {notification.actor?.username}
+                            return (
+                                <div
+                                    key={notification.id}
+                                    className={`relative group p-5 rounded-3xl border transition-all ${notification.is_read ? 'bg-white/[0.02] border-white/5' : 'bg-white/[0.05] border-purple-500/20 shadow-[0_0_20px_rgba(168,85,247,0.05)]'
+                                        } hover:border-white/20`}
+                                >
+                                    <div className="flex items-start gap-4">
+                                        <div className="relative">
+                                            <img
+                                                src={notification.actor?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${notification.actor?.username}`}
+                                                alt={notification.actor?.username}
+                                                className="w-12 h-12 rounded-2xl object-cover ring-2 ring-white/5"
+                                            />
+                                            <div className="absolute -bottom-1 -right-1 p-1.5 rounded-lg bg-slate-900 border border-white/10">
+                                                {notification.type === 'like' && <Heart size={10} className="text-rose-500 fill-rose-500" />}
+                                                {notification.type === 'comment' && <MessageSquare size={10} className="text-blue-400" />}
+                                                {notification.type === 'follow' && <UserPlus size={10} className="text-purple-400" />}
+                                            </div>
+                                        </div>
+
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className="font-black text-white text-sm tracking-tight truncate">
+                                                    {notification.actor?.username}
+                                                </span>
+                                                {!notification.is_read && (
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse"></span>
+                                                )}
+                                            </div>
+                                            <p className="text-slate-400 text-xs font-bold leading-relaxed mb-2">
+                                                {notification.type === 'like' && 'reconfigured appreciation for your transmission.'}
+                                                {notification.type === 'comment' && 'encoded a response to your data entry.'}
+                                                {notification.type === 'follow' && 'established a neural connection with your profile.'}
+                                            </p>
+                                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-600">
+                                                {formatTimeAgo(notification.created_at)}
                                             </span>
-                                            {!notification.is_read && (
-                                                <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse"></span>
-                                            )}
                                         </div>
-                                        <p className="text-slate-400 text-xs font-bold leading-relaxed mb-2">
-                                            {notification.type === 'like' && 'reconfigured appreciation for your transmission.'}
-                                            {notification.type === 'comment' && 'encoded a response to your data entry.'}
-                                            {notification.type === 'follow' && 'established a neural connection with your profile.'}
-                                        </p>
-                                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-600">
-                                            {formatTimeAgo(notification.created_at)}
-                                        </span>
-                                    </div>
 
-                                    {notification.type === 'follow' && (
-                                        <button
-                                            onClick={() => handleFollowBack(notification.actor?.id)}
-                                            className="px-4 py-2 bg-purple-500 text-white text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-purple-400 transition-all active:scale-95 whitespace-nowrap"
-                                        >
-                                            Follow Back
-                                        </button>
-                                    )}
+                                        {notification.type === 'follow' && actorId && (
+                                            <button
+                                                onClick={() => onFollow(actorId)}
+                                                disabled={isLoading}
+                                                className={`btn-follow shrink-0 ${isFollowing
+                                                    ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 hover:bg-rose-500/10 hover:text-rose-400 hover:border-rose-500/20'
+                                                    : 'bg-purple-500 text-white hover:bg-purple-400'
+                                                    } ${isLoading ? 'opacity-60 cursor-not-allowed' : ''}`}
+                                            >
+                                                {isLoading ? (
+                                                    <Loader2 size={14} className="animate-spin" />
+                                                ) : isFollowing ? (
+                                                    'Following'
+                                                ) : (
+                                                    'Follow Back'
+                                                )}
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        ))
+                            );
+                        })
                     )}
                 </div>
             </div>

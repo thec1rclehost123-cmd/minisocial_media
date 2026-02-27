@@ -1,7 +1,7 @@
 import React from 'react';
 import { Edit3 } from 'lucide-react';
 
-const ProfileCard = ({ username, stats }) => {
+const ProfileCard = ({ username, stats, onEditProfile }) => {
     return (
         <div className="glass-card-premium rounded-[2.5rem] p-8 mb-8 relative overflow-hidden group">
             {/* Header / Cover area mockup */}
@@ -32,7 +32,10 @@ const ProfileCard = ({ username, stats }) => {
                     </div>
                 </div>
 
-                <button className="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-xs font-black uppercase tracking-[0.2em] hover:bg-white hover:text-slate-950 transition-all flex items-center justify-center gap-2 shadow-lg">
+                <button
+                    onClick={onEditProfile}
+                    className="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-xs font-black uppercase tracking-[0.2em] hover:bg-white hover:text-slate-950 transition-all flex items-center justify-center gap-2 shadow-lg"
+                >
                     <Edit3 size={14} /> Edit Profile
                 </button>
             </div>

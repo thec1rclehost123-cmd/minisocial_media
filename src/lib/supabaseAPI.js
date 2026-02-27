@@ -163,6 +163,20 @@ export async function toggleFollow(followerId, followingId) {
 }
 
 /**
+ * Get an array of user IDs that the current user is following.
+ * Used for client-side follow state tracking.
+ */
+export async function getFollowingIds(currentUserId) {
+    const { data, error } = await supabase
+        .from('follows')
+        .select('following_id')
+        .eq('follower_id', currentUserId);
+
+    if (error) throw error;
+    return (data || []).map(f => f.following_id);
+}
+
+/**
  * Get suggestions for users to follow.
  * Excludes the current user and people they already follow.
  */

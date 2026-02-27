@@ -9,6 +9,7 @@ import Auth from './components/Auth';
 import Sidebar from './components/Sidebar';
 import ProfileView from './components/ProfileView';
 import NotificationsModal from './components/NotificationsModal';
+import EditIdentityModal from './components/EditIdentityModal';
 import InteractiveBackground from './components/InteractiveBackground';
 import { supabase } from './lib/supabase';
 import {
@@ -18,6 +19,7 @@ import {
     addComment,
     toggleFollow,
     getSuggestedUsers,
+    getFollowingIds,
     getNotifications,
     getUserLikedPostIds,
     subscribeToFeedUpdates,
@@ -39,6 +41,12 @@ function App() {
     const [suggestedCreators, setSuggestedCreators] = useState([]);
     const [userStats, setUserStats] = useState({ followers: '0', following: '0', posts: '0' });
     const [likedPostIds, setLikedPostIds] = useState([]);
+    const [followingIds, setFollowingIds] = useState([]);
+    const [followLoadingIds, setFollowLoadingIds] = useState(new Set());
+
+    // Edit Profile modal state
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
 
     // Notification states
     const [notifications, setNotifications] = useState([]);
@@ -104,12 +112,16 @@ function App() {
             console.error('Trending tags error:', err);
         }
 
-        // Fetch suggested users and stats
+        // Fetch suggested users and following IDs
         try {
-            const suggested = await getSuggestedUsers(uid);
+            const [suggested, followIds] = await Promise.all([
+                getSuggestedUsers(uid),
+                getFollowingIds(uid),
+            ]);
             setSuggestedCreators(suggested || []);
+            setFollowingIds(followIds || []);
         } catch (err) {
-            console.error('Suggested users error:', err);
+            console.error('Suggested users / following error:', err);
         }
 
         // Fetch notifications
@@ -297,22 +309,44 @@ function App() {
 
     const handleFollowCreator = async (creatorId) => {
         if (!userId) return;
+
+        // Prevent duplicate requests
+        if (followLoadingIds.has(creatorId)) return;
+
+        const isCurrentlyFollowing = followingIds.includes(creatorId);
+
+        // Optimistic UI: toggle follow state & counts immediately
+        setFollowLoadingIds(prev => new Set(prev).add(creatorId));
+        setFollowingIds(prev =>
+            isCurrentlyFollowing ? prev.filter(id => id !== creatorId) : [...prev, creatorId]
+        );
+        setUserStats(prev => ({
+            ...prev,
+            following: String(
+                Math.max(0, Number(prev.following) + (isCurrentlyFollowing ? -1 : 1))
+            ),
+        }));
+
         try {
             await toggleFollow(userId, creatorId);
-            // Refetch suggestions and stats
-            const suggested = await getSuggestedUsers(userId);
-            setSuggestedCreators(suggested || []);
-            const { count: followerCount } = await supabase
-                .from('follows').select('*', { count: 'exact', head: true }).eq('following_id', userId);
-            const { count: followingCount } = await supabase
-                .from('follows').select('*', { count: 'exact', head: true }).eq('follower_id', userId);
-            setUserStats(prev => ({
-                ...prev,
-                followers: String(followerCount || 0),
-                following: String(followingCount || 0),
-            }));
         } catch (err) {
             console.error('Follow error:', err);
+            // Rollback on failure
+            setFollowingIds(prev =>
+                isCurrentlyFollowing ? [...prev, creatorId] : prev.filter(id => id !== creatorId)
+            );
+            setUserStats(prev => ({
+                ...prev,
+                following: String(
+                    Math.max(0, Number(prev.following) + (isCurrentlyFollowing ? 1 : -1))
+                ),
+            }));
+        } finally {
+            setFollowLoadingIds(prev => {
+                const next = new Set(prev);
+                next.delete(creatorId);
+                return next;
+            });
         }
     };
 
@@ -351,9 +385,26 @@ function App() {
         }
     };
 
-    const handleFollowUpdate = (actorId, isFollowing) => {
-        // Update suggested users or profile if needed
-        loadContent();
+    /**
+     * Save profile changes from EditIdentityModal (sidebar "Edit Profile" button).
+     */
+    const handleSaveProfile = async (profileData) => {
+        if (!session) return false;
+        setIsSaving(true);
+        try {
+            const { error } = await supabase
+                .from('profiles')
+                .update({ username: profileData.username })
+                .eq('id', session.user.id);
+            if (error) throw error;
+            setUsername(profileData.username);
+            return true;
+        } catch (err) {
+            console.error('Profile update error:', err);
+            return false;
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const handleSignOut = async () => {
@@ -441,6 +492,9 @@ function App() {
                                             onTagClick={setSelectedTag}
                                             onFollow={handleFollowCreator}
                                             selectedTag={selectedTag}
+                                            followingIds={followingIds}
+                                            followLoadingIds={followLoadingIds}
+                                            onEditProfile={() => setShowEditModal(true)}
                                         />
                                     </div>
                                 </aside>
@@ -484,7 +538,19 @@ function App() {
                 notifications={notifications}
                 onMarkAsRead={handleMarkNotificationsRead}
                 currentUserId={userId}
-                onFollowUpdate={handleFollowUpdate}
+                onFollow={handleFollowCreator}
+                followingIds={followingIds}
+                followLoadingIds={followLoadingIds}
+            />
+            <EditIdentityModal
+                isOpen={showEditModal}
+                onClose={() => setShowEditModal(false)}
+                initialData={{
+                    username: username,
+                    email: session?.user?.email || '',
+                }}
+                onSave={handleSaveProfile}
+                isSaving={isSaving}
             />
         </div>
     );
