@@ -2,12 +2,13 @@ import { supabase } from './supabase';
 
 /**
  * Fetch all posts with their likes and comments from Supabase.
- * Uses a robust approach: tries full query first, falls back to simpler query if needed.
+ * Maps the Supabase structure to the expected frontend structure for compatibility.
  */
 export const fetchSupabasePosts = async () => {
+    if (!supabase) return null;
+
     try {
-        // Try the full nested query with comment_likes
-        const { data: posts, error } = await supabase
+        const { data: posts, error: postsError } = await supabase
             .from('posts')
             .select(`
                 *,
@@ -19,12 +20,9 @@ export const fetchSupabasePosts = async () => {
             `)
             .order('created_at', { ascending: false });
 
-        if (error) {
-            console.warn('Full query failed, trying without comment_likes:', error.message);
-            // Fallback: fetch without comment_likes join (in case table doesn't exist yet)
-            return await fetchPostsSimple();
-        }
+        if (postsError) throw postsError;
 
+        // Transform data to match frontend expectations
         return posts.map(post => ({
             id: post.id,
             content: post.content,
@@ -32,59 +30,20 @@ export const fetchSupabasePosts = async () => {
             media: post.media,
             mediaType: post.media_type,
             createdAt: post.created_at,
-            likes: (post.post_likes || []).map(l => l.username),
+            // Map likes array of objects to array of usernames
+            likes: post.post_likes.map(l => l.username),
             comments: (post.comments || []).map(comment => ({
                 id: comment.id,
                 content: comment.content,
                 username: comment.username,
                 createdAt: comment.created_at,
-                likes: (comment.comment_likes || []).map(l => l.username)
+                // Map likes array of objects to array of usernames
+                likes: comment.comment_likes.map(l => l.username)
             })).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
         }));
     } catch (error) {
-        console.error('Error fetching posts:', error);
-        return await fetchPostsSimple();
-    }
-};
-
-/**
- * Simpler fallback query without comment_likes join.
- */
-const fetchPostsSimple = async () => {
-    try {
-        const { data: posts, error } = await supabase
-            .from('posts')
-            .select(`
-                *,
-                post_likes (username),
-                comments (*)
-            `)
-            .order('created_at', { ascending: false });
-
-        if (error) {
-            console.error('Simple query also failed:', error.message);
-            return [];
-        }
-
-        return posts.map(post => ({
-            id: post.id,
-            content: post.content,
-            username: post.username,
-            media: post.media,
-            mediaType: post.media_type,
-            createdAt: post.created_at,
-            likes: (post.post_likes || []).map(l => l.username),
-            comments: (post.comments || []).map(comment => ({
-                id: comment.id,
-                content: comment.content,
-                username: comment.username,
-                createdAt: comment.created_at,
-                likes: []
-            })).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-        }));
-    } catch (error) {
-        console.error('Fallback query failed:', error);
-        return [];
+        console.error('Error fetching from Supabase:', error);
+        return null;
     }
 };
 
@@ -92,85 +51,136 @@ const fetchPostsSimple = async () => {
  * Create a new post in Supabase.
  */
 export const insertSupabasePost = async (content, username, media = null, mediaType = null) => {
-    const { data, error } = await supabase
-        .from('posts')
-        .insert([{ content, username, media, media_type: mediaType }])
-        .select()
-        .single();
+    if (!supabase) return null;
 
-    if (error) {
-        console.error('Error inserting post:', error);
+    try {
+        const { data, error } = await supabase
+            .from('posts')
+            .insert([{ content, username, media, media_type: mediaType }])
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        // Return in frontend format
+        return {
+            ...data,
+            mediaType: data.media_type,
+            likes: [],
+            comments: []
+        };
+    } catch (error) {
+        console.error('Error inserting to Supabase:', error);
         return null;
     }
-
-    return {
-        ...data,
-        mediaType: data.media_type,
-        likes: [],
-        comments: []
-    };
 };
 
 /**
- * Toggle like for a post in Supabase.
+ * Toggle like for a post in Supabase using a separate likes table.
  */
 export const toggleSupabasePostLike = async (postId, username) => {
-    const { data: existingLike } = await supabase
-        .from('post_likes')
-        .select('id')
-        .eq('post_id', postId)
-        .eq('username', username)
-        .maybeSingle();
+    if (!supabase) return null;
 
-    if (existingLike) {
-        await supabase.from('post_likes').delete().eq('id', existingLike.id);
-    } else {
-        await supabase.from('post_likes').insert([{ post_id: postId, username }]);
+    try {
+        // Check if already liked
+        const { data: existingLike, error: fetchError } = await supabase
+            .from('post_likes')
+            .select('id')
+            .eq('post_id', postId)
+            .eq('username', username)
+            .maybeSingle();
+
+        if (fetchError) throw fetchError;
+
+        if (existingLike) {
+            // Unlike
+            const { error: deleteError } = await supabase
+                .from('post_likes')
+                .delete()
+                .eq('id', existingLike.id);
+            if (deleteError) throw deleteError;
+        } else {
+            // Like
+            const { error: insertError } = await supabase
+                .from('post_likes')
+                .insert([{ post_id: postId, username }]);
+            if (insertError) throw insertError;
+        }
+
+        return true;
+    } catch (error) {
+        console.error('Error toggling post like in Supabase:', error);
+        return null;
     }
-    return true;
 };
 
 /**
  * Add a comment to a post in Supabase.
  */
 export const insertSupabaseComment = async (postId, content, username) => {
-    const { data, error } = await supabase
-        .from('comments')
-        .insert([{ post_id: postId, content, username }])
-        .select()
-        .single();
+    if (!supabase) return null;
 
-    if (error) {
-        console.error('Error inserting comment:', error);
+    try {
+        const { data, error } = await supabase
+            .from('comments')
+            .insert([{ post_id: postId, content, username }])
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        return {
+            ...data,
+            likes: []
+        };
+    } catch (error) {
+        console.error('Error inserting comment to Supabase:', error);
         return null;
     }
-
-    return { ...data, likes: [] };
 };
 
 /**
  * Toggle like for a comment in Supabase.
  */
 export const toggleSupabaseCommentLike = async (commentId, username) => {
-    const { data: existingLike } = await supabase
-        .from('comment_likes')
-        .select('id')
-        .eq('comment_id', commentId)
-        .eq('username', username)
-        .maybeSingle();
+    if (!supabase) return null;
 
-    if (existingLike) {
-        await supabase.from('comment_likes').delete().eq('id', existingLike.id);
-    } else {
-        await supabase.from('comment_likes').insert([{ comment_id: commentId, username }]);
+    try {
+        const { data: existingLike, error: fetchError } = await supabase
+            .from('comment_likes')
+            .select('id')
+            .eq('comment_id', commentId)
+            .eq('username', username)
+            .maybeSingle();
+
+        if (fetchError) throw fetchError;
+
+        if (existingLike) {
+            const { error: deleteError } = await supabase
+                .from('comment_likes')
+                .delete()
+                .eq('id', existingLike.id);
+            if (deleteError) throw deleteError;
+        } else {
+            const { error: insertError } = await supabase
+                .from('comment_likes')
+                .insert([{ comment_id: commentId, username }]);
+            if (insertError) throw insertError;
+        }
+
+        return true;
+    } catch (error) {
+        console.error('Error toggling comment like in Supabase:', error);
+        return null;
     }
-    return true;
 };
 
 /**
  * Fetch top trending hashtags from post content.
  */
 export const fetchTrendingTags = async () => {
+    if (!supabase) return [];
+
     try {
         const { data, error } = await supabase.from('posts').select('content');
         if (error) throw error;
@@ -198,19 +208,36 @@ export const fetchTrendingTags = async () => {
  * Fetch suggested creators (excluding current user).
  */
 export const fetchSuggestedCreators = async (currentUserId) => {
+    if (!supabase) return [];
+
     try {
-        const { data, error } = await supabase
+        const { data: creators, error } = await supabase
             .from('profiles')
             .select('*')
             .neq('id', currentUserId || '00000000-0000-0000-0000-000000000000')
             .limit(5);
 
         if (error) throw error;
-        return data.map(p => ({
+
+        // If logged in, check which creators are already followed
+        let followedIds = new Set();
+        if (currentUserId) {
+            const { data: follows } = await supabase
+                .from('follows')
+                .select('following_id')
+                .eq('follower_id', currentUserId);
+
+            if (follows) {
+                followedIds = new Set(follows.map(f => f.following_id));
+            }
+        }
+
+        return creators.map(p => ({
             id: p.id,
             name: p.username,
             role: p.role || 'Explorer',
-            initial: (p.username || 'A').charAt(0).toUpperCase()
+            initial: (p.username || 'A').charAt(0).toUpperCase(),
+            isFollowing: followedIds.has(p.id)
         }));
     } catch (error) {
         console.error('Error fetching suggested creators:', error);
@@ -222,9 +249,10 @@ export const fetchSuggestedCreators = async (currentUserId) => {
  * Fetch real user stats (followers, following, posts).
  */
 export const fetchUserStats = async (userId) => {
-    if (!userId) return { followers: '0', following: '0', posts: '0' };
+    if (!supabase || !userId) return { followers: '0', following: '0', posts: '0' };
 
     try {
+        // Get username first
         const { data: profile } = await supabase.from('profiles').select('username').eq('id', userId).single();
         const username = profile?.username;
 
@@ -246,41 +274,74 @@ export const fetchUserStats = async (userId) => {
 };
 
 export const deleteSupabasePost = async (postId) => {
-    const { error } = await supabase.from('posts').delete().eq('id', postId);
-    if (error) {
-        console.error('Error deleting post:', error);
+    if (!supabase) return null;
+
+    try {
+        const { error } = await supabase
+            .from('posts')
+            .delete()
+            .eq('id', postId);
+
+        if (error) throw error;
+        return true;
+    } catch (error) {
+        console.error('Error deleting post from Supabase:', error);
         return null;
     }
-    return true;
 };
 
 /**
  * Toggle follow/unfollow for a user.
  */
 export const toggleSupabaseFollow = async (followerId, followingId) => {
-    const { data: existing } = await supabase
-        .from('follows')
-        .select('id')
-        .eq('follower_id', followerId)
-        .eq('following_id', followingId)
-        .maybeSingle();
+    if (!supabase) return null;
 
-    if (existing) {
-        await supabase.from('follows').delete().eq('id', existing.id);
-    } else {
-        await supabase.from('follows').insert([{ follower_id: followerId, following_id: followingId }]);
+    try {
+        const { data: existing, error: fetchError } = await supabase
+            .from('follows')
+            .select('id')
+            .eq('follower_id', followerId)
+            .eq('following_id', followingId)
+            .maybeSingle();
+
+        if (fetchError) throw fetchError;
+
+        if (existing) {
+            const { error: deleteError } = await supabase
+                .from('follows')
+                .delete()
+                .eq('id', existing.id);
+            if (deleteError) throw deleteError;
+        } else {
+            const { error: insertError } = await supabase
+                .from('follows')
+                .insert([{ follower_id: followerId, following_id: followingId }]);
+            if (insertError) throw insertError;
+        }
+
+        return true;
+    } catch (error) {
+        console.error('Error toggling follow:', error);
+        return null;
     }
-    return true;
 };
 
 /**
  * Delete a comment from Supabase.
  */
 export const deleteSupabaseComment = async (commentId) => {
-    const { error } = await supabase.from('comments').delete().eq('id', commentId);
-    if (error) {
-        console.error('Error deleting comment:', error);
+    if (!supabase) return null;
+
+    try {
+        const { error } = await supabase
+            .from('comments')
+            .delete()
+            .eq('id', commentId);
+
+        if (error) throw error;
+        return true;
+    } catch (error) {
+        console.error('Error deleting comment from Supabase:', error);
         return null;
     }
-    return true;
 };
