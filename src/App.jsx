@@ -11,6 +11,7 @@ import ProfileView from './components/ProfileView';
 import NotificationsModal from './components/NotificationsModal';
 import EditIdentityModal from './components/EditIdentityModal';
 import InteractiveBackground from './components/InteractiveBackground';
+import MobileBottomNav from './components/MobileBottomNav';
 import { supabase } from './lib/supabase';
 import {
     getFeedPosts,
@@ -416,6 +417,17 @@ function App() {
         setPosts([]);
     };
 
+    const handlePlusClick = () => {
+        if (currentView !== 'home') {
+            setCurrentView('home');
+        }
+        setTimeout(() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            const input = document.getElementById('main-post-input');
+            if (input) input.focus();
+        }, 100);
+    };
+
     return (
         <div className="min-h-screen bg-[#020617] text-slate-50 relative overflow-x-hidden selection:bg-indigo-500/30">
             <InteractiveBackground />
@@ -444,9 +456,9 @@ function App() {
                         unreadCount={unreadCount}
                     />
 
-                    <main className="relative z-10 pt-48 pb-24 max-w-7xl mx-auto px-6">
+                    <main className="relative z-10 pt-28 sm:pt-48 pb-24 max-w-7xl mx-auto px-3 sm:px-6">
                         {currentView === 'home' ? (
-                            <div className="flex flex-col lg:flex-row gap-12 lg:gap-16">
+                            <div className="flex flex-col lg:flex-row gap-6 lg:gap-16">
                                 {/* Left/Center Column: Feed & Input */}
                                 <div className="flex-1 min-w-0">
                                     <div className="max-w-2xl mx-auto">
@@ -551,6 +563,15 @@ function App() {
                 }}
                 onSave={handleSaveProfile}
                 isSaving={isSaving}
+            />
+
+            <MobileBottomNav
+                currentView={currentView}
+                onHomeClick={() => { setCurrentView('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                onNotificationsClick={() => setShowNotifications(true)}
+                onProfileClick={() => setCurrentView('profile')}
+                unreadCount={unreadCount}
+                onPlusClick={handlePlusClick}
             />
         </div>
     );

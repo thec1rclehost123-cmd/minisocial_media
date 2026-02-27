@@ -73,67 +73,67 @@ const PostCard = ({ post, onLike, onDelete, onAddComment, onDeleteComment, curre
     };
 
     return (
-        <div className="group relative p-6 hover:bg-white/[0.02] transition-all duration-300 animate-reveal flex gap-5">
+        <div className="group relative p-4 sm:p-6 hover:bg-white/[0.02] transition-all duration-300 animate-reveal flex gap-3 sm:gap-5">
             {/* Avatar Column */}
             <div className="shrink-0">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-xl shadow-indigo-500/10 group-hover:scale-105 transition-transform duration-500">
-                    <span className="text-sm font-black text-white">{authorUsername?.charAt(0).toUpperCase() || "A"}</span>
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-xl shadow-indigo-500/10 group-hover:scale-105 transition-transform duration-500">
+                    <span className="text-xs sm:text-sm font-black text-white">{authorUsername?.charAt(0).toUpperCase() || "A"}</span>
                 </div>
             </div>
 
             {/* Content Column */}
             <div className="flex-1 min-w-0">
                 {/* Header Info */}
-                <div className="flex items-center justify-between mb-1.5">
-                    <div className="flex items-center gap-2">
-                        <span className="text-base font-black text-white hover:underline cursor-pointer">{authorUsername}</span>
-                        <span className="text-slate-500 text-xs font-bold uppercase tracking-widest">• {randomRole}</span>
+                <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                        <span className="text-sm sm:text-base font-black text-white hover:underline cursor-pointer truncate max-w-[120px] sm:max-w-none">{authorUsername}</span>
+                        <span className="text-slate-500 text-[10px] sm:text-xs font-bold uppercase tracking-widest truncate max-w-[80px] sm:max-w-none">• {randomRole}</span>
                     </div>
-                    <button className="p-2 text-slate-600 hover:text-white transition-colors">
-                        <MoreHorizontal size={18} />
+                    <button className="p-1 sm:p-2 text-slate-600 hover:text-white transition-colors">
+                        <MoreHorizontal size={16} className="sm:w-[18px] sm:h-[18px]" />
                     </button>
                 </div>
 
                 {/* Body Content */}
-                <p className="text-slate-200 leading-relaxed text-[15px] font-medium mb-4 whitespace-pre-wrap">
+                <p className="text-slate-200 leading-relaxed text-sm sm:text-[15px] font-medium mb-3 sm:mb-4 whitespace-pre-wrap">
                     {post.content}
                 </p>
 
                 {/* Media (if exists) */}
                 {post.image_url && (
-                    <div className="relative rounded-2xl overflow-hidden bg-black/40 border border-white/5 shadow-inner mb-4 max-h-[500px] flex items-center justify-center">
-                        <img src={post.image_url} alt="Post media" className="w-full h-auto object-contain max-h-[500px]" />
+                    <div className="relative rounded-xl sm:rounded-2xl overflow-hidden bg-black/40 border border-white/5 shadow-inner mb-3 sm:mb-4 max-h-[400px] sm:max-h-[500px] flex items-center justify-center">
+                        <img src={post.image_url} alt="Post media" className="w-full h-auto object-contain max-h-[400px] sm:max-h-[500px]" />
                     </div>
                 )}
 
                 {/* Actions Row */}
-                <div className="flex items-center justify-between max-w-md -ml-2 text-slate-500">
+                <div className="flex items-center justify-between max-w-md -ml-1 sm:-ml-2 text-slate-500">
                     <button
                         onClick={handleToggleComments}
-                        className={`flex items-center gap-2 text-xs font-black uppercase tracking-widest p-2 rounded-full transition-all group/action hover:text-indigo-400 hover:bg-indigo-400/10 ${showComments ? 'text-indigo-400 bg-indigo-400/5' : ''}`}
+                        className={`flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs font-black uppercase tracking-widest p-1.5 sm:p-2 rounded-full transition-all group/action hover:text-indigo-400 hover:bg-indigo-400/10 ${showComments ? 'text-indigo-400 bg-indigo-400/5' : ''}`}
                     >
-                        <MessageCircle size={18} className="group-hover/action:scale-110 transition-transform" />
+                        <MessageCircle size={16} className="sm:w-[18px] sm:h-[18px] group-hover/action:scale-110 transition-transform" />
                         <span>{commentCount}</span>
                     </button>
 
                     <button
                         onClick={() => onLike(post.id)}
-                        className={`flex items-center gap-2 text-xs font-black uppercase tracking-widest p-2 rounded-full transition-all group/action hover:text-rose-500 hover:bg-rose-500/10 ${isLiked ? 'text-rose-500 bg-rose-500/5' : ''}`}
+                        className={`flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs font-black uppercase tracking-widest p-1.5 sm:p-2 rounded-full transition-all group/action hover:text-rose-500 hover:bg-rose-500/10 ${isLiked ? 'text-rose-500 bg-rose-500/5' : ''}`}
                     >
-                        <Heart size={18} className={`group-hover/action:scale-110 transition-transform ${isLiked ? "fill-current text-rose-500" : ""}`} />
+                        <Heart size={16} className={`sm:w-[18px] sm:h-[18px] group-hover/action:scale-110 transition-transform ${isLiked ? "fill-current text-rose-500" : ""}`} />
                         <span>{likeCount}</span>
                     </button>
 
-                    <button className="p-2 rounded-full hover:bg-white/5 transition-all text-slate-600 hover:text-white">
-                        <Share2 size={18} />
+                    <button className="p-1.5 sm:p-2 rounded-full hover:bg-white/5 transition-all text-slate-600 hover:text-white">
+                        <Share2 size={16} className="sm:w-[18px] sm:h-[18px]" />
                     </button>
 
                     {post.user_id === currentUserId && (
                         <button
                             onClick={() => onDelete(post.id)}
-                            className="p-2 rounded-full hover:bg-rose-500/10 transition-all text-slate-600 hover:text-rose-500"
+                            className="p-1.5 sm:p-2 rounded-full hover:bg-rose-500/10 transition-all text-slate-600 hover:text-rose-500"
                         >
-                            <Trash2 size={18} />
+                            <Trash2 size={16} className="sm:w-[18px] sm:h-[18px]" />
                         </button>
                     )}
                 </div>

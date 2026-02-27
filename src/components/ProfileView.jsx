@@ -38,53 +38,49 @@ const ProfileView = ({ posts, username, userId, stats, onLike, onDelete, onAddCo
     };
 
     return (
-        <div className="max-w-6xl mx-auto animate-reveal">
+        <div className="max-w-6xl mx-auto animate-reveal px-2 sm:px-0">
             {/* Profile Header */}
-            <div className="relative mb-20">
+            <div className="relative mb-12 sm:mb-20">
                 {/* Visual Cover */}
-                <div className="h-64 rounded-[3rem] bg-gradient-to-br from-indigo-900/40 via-purple-900/20 to-slate-900/40 border border-white/5 relative overflow-hidden">
+                <div className="h-40 sm:h-64 rounded-[1.5rem] sm:rounded-[3rem] bg-gradient-to-br from-indigo-900/40 via-purple-900/20 to-slate-900/40 border border-white/5 relative overflow-hidden">
                     <div className="absolute inset-0 opacity-20 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
                     <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-indigo-500/10 blur-[100px] rounded-full"></div>
                     <div className="absolute -top-24 -left-24 w-96 h-96 bg-purple-500/10 blur-[100px] rounded-full"></div>
                 </div>
 
                 {/* Profile Card Overlay */}
-                <div className="px-12 -mt-32 relative z-10 flex flex-col lg:flex-row items-end gap-12">
-                    <div className="w-48 h-48 rounded-[3.5rem] bg-gradient-to-tr from-indigo-500 to-purple-600 p-1.5 shadow-2xl">
-                        <div className="w-full h-full rounded-[3.2rem] bg-slate-950 flex items-center justify-center relative overflow-hidden">
-                            <span className="text-6xl font-black text-white">{username?.charAt(0).toUpperCase() || 'A'}</span>
+                <div className="px-6 sm:px-12 -mt-16 sm:-mt-32 relative z-10 flex flex-col lg:flex-row items-center lg:items-end gap-6 sm:gap-12">
+                    <div className="w-32 h-32 sm:w-48 sm:h-48 rounded-[2rem] sm:rounded-[3.5rem] bg-gradient-to-tr from-indigo-500 to-purple-600 p-1 sm:p-1.5 shadow-2xl shrink-0">
+                        <div className="w-full h-full rounded-[1.8rem] sm:rounded-[3.2rem] bg-slate-950 flex items-center justify-center relative overflow-hidden">
+                            <span className="text-4xl sm:text-6xl font-black text-white">{username?.charAt(0).toUpperCase() || 'A'}</span>
                             <div className="absolute inset-0 bg-gradient-to-t from-indigo-500/20 to-transparent"></div>
                         </div>
                     </div>
 
-                    <div className="flex-1 pb-4">
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-6 mb-6">
-                            <h2 className="text-5xl font-black text-white tracking-tighter">{username || 'Visionary'}</h2>
-                            <div className="flex gap-3">
+                    <div className="flex-1 pb-0 sm:pb-4 text-center lg:text-left">
+                        <div className="flex flex-col sm:flex-row items-center lg:items-center justify-center lg:justify-start gap-4 sm:gap-6 mb-4 sm:mb-6">
+                            <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tighter truncate max-w-full">{username || 'Visionary'}</h2>
+                            <div className="flex gap-2 sm:gap-3">
                                 <button
                                     onClick={() => setShowEditModal(true)}
-                                    className="px-6 py-2.5 bg-white text-slate-950 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all shadow-xl active:scale-95"
+                                    className="px-4 sm:px-6 py-2 sm:py-2.5 bg-white text-slate-950 rounded-xl sm:rounded-2xl font-black text-[10px] sm:text-xs uppercase tracking-widest hover:bg-slate-200 transition-all shadow-xl active:scale-95"
                                 >
-                                    Edit Profile
+                                    Edit Identity
                                 </button>
-                                <button className="p-2.5 bg-white/5 border border-white/10 text-white rounded-2xl hover:bg-white/10 transition-all">
-                                    <Settings size={20} />
+                                <button className="p-2 sm:p-2.5 bg-white/5 border border-white/10 text-white rounded-xl sm:rounded-2xl hover:bg-white/10 transition-all">
+                                    <Settings size={18} className="sm:w-[20px] sm:h-[20px]" />
                                 </button>
                             </div>
                         </div>
 
-                        <div className="flex flex-wrap gap-8 text-slate-400">
+                        <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 sm:gap-8 text-slate-400">
                             <div className="flex items-center gap-2">
                                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                                <span className="text-sm font-bold tracking-tight">Active Portfolio</span>
+                                <span className="text-[10px] sm:text-sm font-bold tracking-tight">Active Portfolio</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <MapPin size={16} className="text-indigo-400" />
-                                <span className="text-sm font-bold tracking-tight">Global Workspace</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <LinkIcon size={16} className="text-purple-400" />
-                                <span className="text-sm font-bold tracking-tight hover:text-white cursor-pointer transition-colors">visionary.design</span>
+                                <MapPin size={14} className="text-indigo-400 sm:w-[16px] sm:h-[16px]" />
+                                <span className="text-[10px] sm:text-sm font-bold tracking-tight">Global Meta</span>
                             </div>
                         </div>
                     </div>
@@ -92,31 +88,31 @@ const ProfileView = ({ posts, username, userId, stats, onLike, onDelete, onAddCo
             </div>
 
             {/* Main Profile Grid View */}
-            <div className="flex flex-col lg:flex-row gap-16">
+            <div className="flex flex-col lg:flex-row gap-10 lg:gap-16">
                 {/* Sidebar: Stats & Info */}
-                <aside className="lg:w-80 shrink-0 flex flex-col gap-10">
-                    <div className="glass-card-premium rounded-[2.5rem] p-10">
-                        <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-8">Vital Statistics</h4>
-                        <div className="space-y-8">
-                            <div>
-                                <p className="text-3xl font-black text-white mb-1">{stats?.posts || '0'}</p>
-                                <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest leading-none">Creative Sparks</p>
+                <aside className="w-full lg:w-80 shrink-0 flex flex-col gap-6 sm:gap-10">
+                    <div className="glass-card-premium rounded-[1.5rem] sm:rounded-[2.5rem] p-6 sm:p-10">
+                        <h4 className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-6 sm:mb-8">Transmission Data</h4>
+                        <div className="flex flex-row lg:flex-col justify-between items-center lg:items-start gap-4 lg:space-y-8">
+                            <div className="text-center lg:text-left">
+                                <p className="text-xl sm:text-3xl font-black text-white mb-0.5 sm:mb-1">{stats?.posts || '0'}</p>
+                                <p className="text-[8px] sm:text-[10px] font-black text-slate-600 uppercase tracking-widest leading-none">Sparks</p>
                             </div>
-                            <div>
-                                <p className="text-3xl font-black text-white mb-1">{stats?.followers || '0'}</p>
-                                <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest leading-none">Followers</p>
+                            <div className="text-center lg:text-left border-x lg:border-none border-white/5 px-4 lg:px-0">
+                                <p className="text-xl sm:text-3xl font-black text-white mb-0.5 sm:mb-1">{stats?.followers || '0'}</p>
+                                <p className="text-[8px] sm:text-[10px] font-black text-slate-600 uppercase tracking-widest leading-none">Nodes</p>
                             </div>
-                            <div>
-                                <p className="text-3xl font-black text-white mb-1">{stats?.following || '0'}</p>
-                                <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest leading-none">Following</p>
+                            <div className="text-center lg:text-left">
+                                <p className="text-xl sm:text-3xl font-black text-white mb-0.5 sm:mb-1">{stats?.following || '0'}</p>
+                                <p className="text-[8px] sm:text-[10px] font-black text-slate-600 uppercase tracking-widest leading-none">Links</p>
                             </div>
                         </div>
                     </div>
 
-                    <div className="glass-card-premium rounded-[2.5rem] p-10">
-                        <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-6">About Visionary</h4>
-                        <p className="text-slate-400 text-sm leading-relaxed font-medium">
-                            Architect of digital experiences. Exploring the intersection of physics, aesthetics, and code. Focused on high-fidelity social sanctuaries.
+                    <div className="glass-card-premium rounded-[1.5rem] sm:rounded-[2.5rem] p-6 sm:p-10">
+                        <h4 className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-4 sm:mb-6">Coded Identity</h4>
+                        <p className="text-slate-400 text-xs sm:text-sm leading-relaxed font-medium">
+                            Architect of digital experiences. Exploring the intersection of aesthetics and code. Focus: High-fidelity social sanctuaries.
                         </p>
                     </div>
                 </aside>
@@ -124,17 +120,17 @@ const ProfileView = ({ posts, username, userId, stats, onLike, onDelete, onAddCo
                 {/* Content Area: Tabs & Grid */}
                 <div className="flex-1 min-w-0">
                     {/* Tabs Navigation */}
-                    <div className="flex items-center justify-center gap-10 mb-12 border-b border-white/5 pb-6">
+                    <div className="flex items-center justify-center gap-6 sm:gap-10 mb-8 sm:mb-12 border-b border-white/5 pb-4 sm:pb-6">
                         {tabs.map(tab => (
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`flex items-center gap-3 pb-6 -mb-[26px] transition-all relative ${activeTab === tab.id ? 'text-white border-b-2 border-indigo-500' : 'text-slate-600 hover:text-slate-300'}`}
+                                className={`flex items-center gap-2 sm:gap-3 pb-4 sm:pb-6 -mb-[18px] sm:-mb-[26px] transition-all relative ${activeTab === tab.id ? 'text-white border-b-2 border-indigo-500' : 'text-slate-600 hover:text-slate-300'}`}
                             >
-                                {tab.icon}
-                                <span className="text-sm font-black uppercase tracking-widest">{tab.label}</span>
+                                {React.cloneElement(tab.icon, { size: 16, className: "sm:w-[18px] sm:h-[18px]" })}
+                                <span className="text-[10px] sm:text-sm font-black uppercase tracking-widest">{tab.label}</span>
                                 {tab.count > 0 && (
-                                    <span className="text-[10px] bg-white/5 px-2 py-0.5 rounded-full border border-white/10 text-slate-500">
+                                    <span className="hidden sm:inline-block text-[10px] bg-white/5 px-2 py-0.5 rounded-full border border-white/10 text-slate-500">
                                         {tab.count}
                                     </span>
                                 )}
