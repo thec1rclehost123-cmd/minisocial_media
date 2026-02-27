@@ -49,6 +49,31 @@ body {
   .no-transition {
     transition: none !important;
   }
+
+  /* Follow button — consistent sizing, proper touch targets, smooth state transitions */
+  .btn-follow {
+    @apply px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95 shadow-lg;
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .btn-follow:disabled {
+    pointer-events: none;
+  }
+
+  @media (max-width: 640px) {
+    .btn-follow {
+      @apply px-4 py-2 text-[9px];
+      min-height: 44px;
+      min-width: 44px;
+    }
+  }
 }
 
 /* 3D Stack Animation */
