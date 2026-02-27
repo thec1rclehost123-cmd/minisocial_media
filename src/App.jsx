@@ -8,6 +8,7 @@ import Feed from './components/Feed';
 import Auth from './components/Auth';
 import Sidebar from './components/Sidebar';
 import ProfileView from './components/ProfileView';
+import NotificationsModal from './components/NotificationsModal';
 import InteractiveBackground from './components/InteractiveBackground';
 import { supabase } from './lib/supabase';
 import {
@@ -38,6 +39,11 @@ function App() {
     const [suggestedCreators, setSuggestedCreators] = useState([]);
     const [userStats, setUserStats] = useState({ followers: '0', following: '0', posts: '0' });
     const [likedPostIds, setLikedPostIds] = useState([]);
+
+    // Notification states
+    const [notifications, setNotifications] = useState([]);
+    const [showNotifications, setShowNotifications] = useState(false);
+    const unreadCount = useMemo(() => notifications.filter(n => !n.is_read).length, [notifications]);
 
     /**
      * Fetch all data from Supabase. Called on mount & after auth changes.
@@ -104,6 +110,14 @@ function App() {
             setSuggestedCreators(suggested || []);
         } catch (err) {
             console.error('Suggested users error:', err);
+        }
+
+        // Fetch notifications
+        try {
+            const notifs = await getNotifications(uid);
+            setNotifications(notifs || []);
+        } catch (err) {
+            console.error('Notifications fetch error:', err);
         }
 
         try {
@@ -326,6 +340,22 @@ function App() {
         }
     };
 
+    const handleMarkNotificationsRead = async () => {
+        if (!userId) return;
+        try {
+            const { markNotificationsRead } = await import('./lib/supabaseAPI');
+            await markNotificationsRead(userId);
+            setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+        } catch (err) {
+            console.error('Error marking notifications as read:', err);
+        }
+    };
+
+    const handleFollowUpdate = (actorId, isFollowing) => {
+        // Update suggested users or profile if needed
+        loadContent();
+    };
+
     const handleSignOut = async () => {
         await supabase.auth.signOut();
         setSession(null);
@@ -356,8 +386,11 @@ function App() {
                         onHomeClick={() => {
                             setCurrentView('home');
                             setSelectedTag(null);
+                            setSearchQuery('');
                         }}
                         currentView={currentView}
+                        onNotificationsClick={() => setShowNotifications(true)}
+                        unreadCount={unreadCount}
                     />
 
                     <main className="relative z-10 pt-48 pb-24 max-w-7xl mx-auto px-6">
@@ -444,6 +477,15 @@ function App() {
                     </footer>
                 </>
             )}
+            {/* Modals */}
+            <NotificationsModal
+                isOpen={showNotifications}
+                onClose={() => setShowNotifications(false)}
+                notifications={notifications}
+                onMarkAsRead={handleMarkNotificationsRead}
+                currentUserId={userId}
+                onFollowUpdate={handleFollowUpdate}
+            />
         </div>
     );
 }

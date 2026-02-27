@@ -1,7 +1,7 @@
 import React from 'react';
 import { Home, Bell, User, Search } from 'lucide-react';
 
-const Navbar = ({ onSearch, username, onProfileClick, onHomeClick, currentView }) => {
+const Navbar = ({ onSearch, username, onProfileClick, onHomeClick, currentView, onNotificationsClick, unreadCount }) => {
 
     return (
         <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-8 transition-all duration-500">
@@ -32,9 +32,16 @@ const Navbar = ({ onSearch, username, onProfileClick, onHomeClick, currentView }
                 </div>
 
                 <div className="flex items-center gap-6 relative z-10">
-                    <button className="p-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl transition-all relative group/icon">
+                    <button
+                        onClick={onNotificationsClick}
+                        className="p-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl transition-all relative group/icon"
+                    >
                         <Bell size={24} className="group-hover/icon:scale-110 group-hover/icon:rotate-12 transition-transform" />
-                        <span className="absolute top-4 right-4 w-2 h-2 bg-indigo-500 rounded-full border-2 border-[#020617] animate-pulse shadow-[0_0_10px_rgba(99,102,241,0.8)]"></span>
+                        {unreadCount > 0 && (
+                            <span className="absolute top-3 right-3 min-w-[18px] h-[18px] bg-indigo-500 rounded-full border-2 border-[#020617] flex items-center justify-center text-[10px] font-black text-white shadow-[0_0_10px_rgba(99,102,241,0.8)] animate-pulse">
+                                {unreadCount > 9 ? '9+' : unreadCount}
+                            </span>
+                        )}
                     </button>
 
                     <div
