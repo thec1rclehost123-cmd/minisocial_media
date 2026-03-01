@@ -20,18 +20,15 @@ jobs:
       with:
         node-version: '20'
         cache: 'npm'
-        cache-dependency-path: minisocial_media/package-lock.json
+        cache-dependency-path: package-lock.json
 
     - name: Install dependencies
-      working-directory: ./minisocial_media
       run: npm ci
 
     - name: Build project
-      working-directory: ./minisocial_media
       run: npm run build
 
     - name: Run tests
-      working-directory: ./minisocial_media
       run: npm test
 
   # Add deployment job when you're ready to deploy to a platform like Vercel or Netlify
