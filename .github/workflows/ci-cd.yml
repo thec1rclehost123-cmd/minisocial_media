@@ -2,9 +2,11 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "final-feature-submission" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "final-feature-submission" ]
+  schedule:
+    - cron: '0 0 * * *' # Runs every day at midnight (UTC)
 
 jobs:
   build:
@@ -27,6 +29,10 @@ jobs:
     - name: Build project
       working-directory: ./minisocial_media
       run: npm run build
+
+    - name: Run tests
+      working-directory: ./minisocial_media
+      run: npm test
 
   # Add deployment job when you're ready to deploy to a platform like Vercel or Netlify
   # deploy:
