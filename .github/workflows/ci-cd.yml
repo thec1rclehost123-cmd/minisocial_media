@@ -28,8 +28,14 @@ jobs:
     - name: Build project
       run: npm run build
 
+    - name: Security checks
+      run: npm audit --audit-level=high
+
     - name: Run tests
       run: npm test
+      env:
+        VITE_SUPABASE_URL: ${{ secrets.SUPABASEURL }}
+        VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASEANONKEY }}
 
   # Add deployment job when you're ready to deploy to a platform like Vercel or Netlify
   # deploy:
