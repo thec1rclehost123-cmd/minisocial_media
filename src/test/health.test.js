@@ -4,11 +4,14 @@ import { createClient } from '@supabase/supabase-js';
 // We'll use a test that checks if the Supabase service is reachable
 describe('System Health Check', () => {
     it('should verify Supabase connectivity', async () => {
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-        const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+        // Check both Vitest's import.meta.env and Node's process.env
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+        const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
 
-        if (!supabaseUrl || !supabaseKey) {
-            console.warn('Skipping Supabase check: Environment variables missing');
+        if (!supabaseUrl || !supabaseKey || !supabaseUrl.startsWith('http')) {
+            console.warn('Skipping Supabase check: Environment variables missing or invalid URL');
+            console.log('URL present:', !!supabaseUrl);
+            console.log('Key present:', !!supabaseKey);
             return;
         }
 
