@@ -11,53 +11,31 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: package-lock.json
-      - name: Install dependencies
-        run: npm ci
-      - name: Build project
-        run: npm run build
 
-  security:
-    needs: build
-    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: package-lock.json
-      - name: Install dependencies
-        run: npm ci
-      - name: Security checks
-        run: npm audit --audit-level=high
+    - uses: actions/checkout@v4
 
-  test:
-    needs: security
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: package-lock.json
-      - name: Install dependencies
-        run: npm ci
-      - name: Run tests
-        run: npm test
-        env:
-          VITE_SUPABASE_URL: ${{ secrets.SUPABASEURL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASEANONKEY }}
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: package-lock.json
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build project
+      run: npm run build
+
+    - name: Security checks
+      run: npm audit --audit-level=high
+
+    - name: Run tests
+      run: npm test
+      env:
+        VITE_SUPABASE_URL: ${{ secrets.SUPABASEURL }}
+        VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASEANONKEY }}
 
   # Add deployment job when you're ready to deploy to a platform like Vercel or Netlify
   # deploy:
