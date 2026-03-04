@@ -80,4 +80,5 @@ jobs:
         uses: sonarsource/sonarcloud-github-action@v3.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONARQUBEKEY }}
+          SONAR_HOST_URL: ${{ secrets.SONARQUBEURL }}
