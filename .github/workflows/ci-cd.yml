@@ -77,7 +77,11 @@ jobs:
         with:
           fetch-depth: 0
       - name: SonarQube Scan
-        uses: sonarsource/sonarqube-scan-action@v5
+        uses: sonarsource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN: ${{ secrets.SONARQUBEKEY }}
           SONAR_HOST_URL: ${{ secrets.SONARQUBEURL }}
+        with:
+          args: >
+            -Dsonar.projectKey=minisocial_media
+            -Dsonar.sources=src
